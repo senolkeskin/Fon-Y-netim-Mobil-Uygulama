@@ -1,0 +1,12 @@
+{
+  "name": "FonYonetim",
+  "displayName": "FonYonetim",
+  "expo": {
+    "name": "FonYonetim",
+    "slug": "FonYonetim",
+    "version": "1.0.0",
+    "assetBundlePatterns": [
+      "**/*"
+    ]
+  }
+}
