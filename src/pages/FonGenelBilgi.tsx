@@ -17,7 +17,7 @@ import RNPickerSelect from 'react-native-picker-select';
 import { Input, CheckBox } from "react-native-elements";
 import { LineChart } from "react-native-chart-kit";
 import axios from "axios";
-import { Gunler } from "../constants/enums"
+import { FonTurleri, Gunler } from "../constants/enums"
 import { TouchableOpacity } from "react-native-gesture-handler";
 
 interface Props {
@@ -68,10 +68,25 @@ interface FonModel {
 }
 
 interface FonGenelBilgiState {
-    responseItemsToday: FonModel[];
-    responseItemsYesterday: FonModel[];
+    responseItems: FonModel[];
     page: number;
     fundItems: FonModel[];
+    fundItemToday: FonModel[];
+    //fonlar
+    DegiskenFon: FonModel[];
+    BorclanmaAraclariFonu: FonModel[];
+    HisseSenediFonu: FonModel[];
+    ParaPiyasasiFonu: FonModel[];
+    AltinFonu: FonModel[];
+    FonSepetiFonu: FonModel[];
+    KatilimFonu: FonModel[];
+    KorumaAmacliFon: FonModel[];
+    AltinVeDigerKiymetliMadenlerFonu: FonModel[];
+    HisseSenediYogunFon: FonModel[];
+    BosFon: FonModel[];
+    KiraSertifikasıFonu: FonModel[];
+    KarmaFon: FonModel[];
+    GumusFonu: FonModel[];
 }
 
 export default class FonGenelBilgi extends Component<Props, FonGenelBilgiState> {
@@ -83,71 +98,196 @@ export default class FonGenelBilgi extends Component<Props, FonGenelBilgiState> 
     constructor(props: Props) {
         super(props);
         this.state = {
-            responseItemsToday: [],
-            responseItemsYesterday: [],
+            responseItems: [],
             page: 0,
             fundItems: [],
+            fundItemToday: [],
+            DegiskenFon: [],
+            BorclanmaAraclariFonu: [],
+            HisseSenediFonu: [],
+            ParaPiyasasiFonu: [],
+            AltinFonu: [],
+            FonSepetiFonu: [],
+            KatilimFonu: [],
+            KorumaAmacliFon: [],
+            AltinVeDigerKiymetliMadenlerFonu: [],
+            HisseSenediYogunFon: [],
+            BosFon: [],
+            KiraSertifikasıFonu: [],
+            KarmaFon: [],
+            GumusFonu: [],
         };
     }
 
     componentDidMount = async () => {
-        var date = new Date();
-        var dateBefore = new Date();
-        //cumartesi
-        if (date.getDay() == Gunler.cumartesi) {
-            date.setDate(date.getDate() - 1);
-            dateBefore.setDate(date.getDate() - 1);
-        }
-        //pazar
-        else if (date.getDay() == Gunler.pazar) {
-            date.setDate(date.getDate() - 2);
-            dateBefore.setDate(date.getDate() - 2);
-        }
-        else if(date.getDay() == Gunler.pazartesi){
-            dateBefore.setDate(date.getDate ()- 2);
-        }
-        //Son hesap tarihinden bir önceki gün
-        dateBefore.setDate(date.getDate() - 1);
+        var dateNow = new Date();
+        var oneMonthAgoDate = new Date();
+        oneMonthAgoDate.setDate(dateNow.getDate() - 7);
 
         //günün verileri
-        const fundResponseToday = await axios.get("https://ws.spk.gov.tr/PortfolioValues/api/PortfoyDegerleri/01/" + this.getFormattedDate(date) + "/" + this.getFormattedDate(date));
-        const fundResponseYesterday = await axios.get("https://ws.spk.gov.tr/PortfolioValues/api/PortfoyDegerleri/01/" + this.getFormattedDate(dateBefore) + "/" + this.getFormattedDate(dateBefore));
+        const fundResponse = await axios.get("https://ws.spk.gov.tr/PortfolioValues/api/PortfoyDegerleri/01/" + this.getFormattedDateForApi(oneMonthAgoDate) + "/" + this.getFormattedDateForApi(dateNow));
+        const fund = await axios.get("https://ws.spk.gov.tr/PortfolioValues/api/Funds/1");
+        var funds: any[] = [];
+        if (fundResponse.status == 200 && fundResponse.data != null && fundResponse.data.length > 0) {
+            var fundValues: FonModel[] = fundResponse.data;
+            //7 gün içinde işlem görmüş bütün fonları bul
+            var fundItemToday: FonModel[] = [];
+            var DegiskenFon: FonModel[] = [];
+            var BorclanmaAraclariFonu: FonModel[] = [];
+            var HisseSenediFonu: FonModel[] = [];
+            var ParaPiyasasiFonu: FonModel[] = [];
+            var AltinFonu: FonModel[] = [];
+            var FonSepetiFonu: FonModel[] = [];
+            var KatilimFonu: FonModel[] = [];
+            var KorumaAmacliFon: FonModel[] = [];
+            var AltinVeDigerKiymetliMadenlerFonu: FonModel[] = [];
+            var HisseSenediYogunFon: FonModel[] = [];
+            var BosFon: FonModel[] = [];
+            var KiraSertifikasıFonu: FonModel[] = [];
+            var KarmaFon: FonModel[] = [];
+            var GumusFonu: FonModel[] = [];
+            fundValues.forEach((item: FonModel) => {
+                if ((!funds.some(x => x == item.FonKodu) || funds.length == 0) && item.FonTuru != FonTurleri.KorumaAmacliFon && item.FonTuru != FonTurleri.GumusFonu) {
+                    funds.push(item.FonKodu);
 
-        if (fundResponseToday.status == 200 && fundResponseYesterday.status == 200 && fundResponseToday.data != null && fundResponseToday.data.length > 0 && fundResponseYesterday.data != null && fundResponseYesterday.data.length > 0) {
-            var responseItemsToday: FonModel[] = fundResponseToday.data
-            var responseItemsYesterday: FonModel[] = fundResponseYesterday.data
+                    var currDate = new Date();
+                    var currDateString = this.getFormattedDateForListing(currDate);
+                    var currFundValue = fundValues.find((x: FonModel) => x.Tarih.toString() == currDateString && x.FonKodu == item.FonKodu);
+                    var currIterator = 0;
+                    while (currFundValue == undefined && currIterator < 7) {
+                        currDate.setDate(currDate.getDay() + 1);
+                        currDateString = this.getFormattedDateForListing(currDate);
+                        currFundValue = fundValues.find((x: FonModel) => x.Tarih.toString() == currDateString && x.FonKodu == item.FonKodu);
+                        currIterator++;
+                    }
 
-            responseItemsToday.forEach((todayItem: FonModel) => {
-                var yesterdayItem = responseItemsYesterday.find((x: FonModel) => x.FonKodu == todayItem.FonKodu);
-                if (yesterdayItem != null || yesterdayItem != undefined) {
-                    todayItem.GunlukArtisYuzdesi = ((todayItem.BirimPayDegeri - yesterdayItem.BirimPayDegeri) * 100) / todayItem.BirimPayDegeri;
+                    var preDate = new Date();
+                    preDate.setDate(currDate.getDate() - 1);
+                    var preDateString = this.getFormattedDateForListing(preDate);
+                    var preFundValue = fundValues.find((x: FonModel) => x.Tarih.toString() == preDateString && x.FonKodu == item.FonKodu);
+                    var preIterator = 0;
+                    while (preFundValue == undefined && preIterator < 7) {
+                        preDate.setDate(preDate.getDate() - 1);
+                        preDateString = this.getFormattedDateForListing(preDate);
+                        preFundValue = fundValues.find((x: FonModel) => x.Tarih.toString() == preDateString && x.FonKodu == item.FonKodu);
+                        preIterator++;
+                    }
+
+                    if (currFundValue != undefined || preFundValue != undefined) {
+                        if (currFundValue.BirimPayDegeri != undefined || preFundValue.BirimPayDegeri != undefined) {
+                            if (currFundValue.BirimPayDegeri != null || preFundValue.BirimPayDegeri != null) {
+                                if (currFundValue.BirimPayDegeri != 0 || preFundValue.BirimPayDegeri != null) {
+                                    currFundValue.GunlukArtisYuzdesi = ((currFundValue.BirimPayDegeri - preFundValue.BirimPayDegeri) * 100) / currFundValue.BirimPayDegeri;
+                                }
+                                else {
+                                    currFundValue.GunlukArtisYuzdesi = 0;
+                                }
+                            }
+                            else {
+                                currFundValue.GunlukArtisYuzdesi = 0;
+                            }
+                        }
+                        else {
+                            currFundValue.GunlukArtisYuzdesi = 0;
+                        }
+                    }
+                    else {
+                        currFundValue.GunlukArtisYuzdesi = 0;
+                    }
+                    if (currFundValue != undefined) {
+                        fundItemToday.push(currFundValue);
+                        if (currFundValue.FonTuru == FonTurleri.AltinFonu) {
+                            AltinFonu.push(currFundValue);
+                        }
+                        else if (currFundValue.FonTuru == FonTurleri.AltinVeDigerKiymetliMadenlerFonu) {
+                            AltinVeDigerKiymetliMadenlerFonu.push(currFundValue);
+                        }
+                        else if (currFundValue.FonTuru == FonTurleri.BorclanmaAraclariFonu) {
+                            BorclanmaAraclariFonu.push(currFundValue);
+                        }
+                        else if (currFundValue.FonTuru == FonTurleri.BosFon) {
+                            BosFon.push(currFundValue);
+                        }
+                        else if (currFundValue.FonTuru == FonTurleri.DegiskenFon) {
+                            DegiskenFon.push(currFundValue);
+                        }
+                        else if (currFundValue.FonTuru == FonTurleri.ParaPiyasasiFonu) {
+                            ParaPiyasasiFonu.push(currFundValue);
+                        }
+                        else if (currFundValue.FonTuru == FonTurleri.GumusFonu) {
+                            GumusFonu.push(currFundValue);
+                        }
+                        else if (currFundValue.FonTuru == FonTurleri.HisseSenediFonu) {
+                            HisseSenediFonu.push(currFundValue);
+                        }
+                        else if (currFundValue.FonTuru == FonTurleri.HisseSenediYogunFon) {
+                            HisseSenediYogunFon.push(currFundValue);
+                        }
+                        else if (currFundValue.FonTuru == FonTurleri.KarmaFon) {
+                            KarmaFon.push(currFundValue);
+                        }
+                        else if (currFundValue.FonTuru == FonTurleri.KatilimFonu) {
+                            KatilimFonu.push(currFundValue);
+                        }
+                        else if (currFundValue.FonTuru == FonTurleri.KiraSertifikasıFonu) {
+                            KiraSertifikasıFonu.push(currFundValue);
+                        }
+                        else if (currFundValue.FonTuru == FonTurleri.FonSepetiFonu) {
+                            FonSepetiFonu.push(currFundValue);
+                        }
+                        else if (currFundValue.FonTuru == FonTurleri.KorumaAmacliFon) {
+                            KorumaAmacliFon.push(currFundValue);
+                        }
+                    }
+
+
                 }
             })
 
             this.setState({
-                responseItemsToday: responseItemsToday,
-                responseItemsYesterday: responseItemsYesterday
-            }, () => this.addRecords(0))
+                fundItemToday: fundItemToday,
+                DegiskenFon: DegiskenFon,
+                BorclanmaAraclariFonu: BorclanmaAraclariFonu,
+                HisseSenediFonu: HisseSenediFonu,
+                ParaPiyasasiFonu: ParaPiyasasiFonu,
+                AltinFonu: AltinFonu,
+                FonSepetiFonu: FonSepetiFonu,
+                KatilimFonu: KatilimFonu,
+                KorumaAmacliFon: KorumaAmacliFon,
+                AltinVeDigerKiymetliMadenlerFonu: AltinVeDigerKiymetliMadenlerFonu,
+                HisseSenediYogunFon: HisseSenediYogunFon,
+                BosFon: BosFon,
+                KiraSertifikasıFonu: KiraSertifikasıFonu,
+                KarmaFon: KarmaFon,
+                GumusFonu: GumusFonu,
 
+            }, () => this.addRecords(0))
         }
 
 
 
     }
 
-    getFormattedDate(date: Date) {
+    getFormattedDateForApi(date: Date) {
         let year = date.getFullYear();
         let month = (1 + date.getMonth()).toString().padStart(2, '0');
         let day = date.getDate().toString().padStart(2, '0');
         return month + '-' + day + "-" + year;
     }
 
+    getFormattedDateForListing(date: Date) {
+        let year = date.getFullYear();
+        let month = (1 + date.getMonth()).toString().padStart(2, '0');
+        let day = date.getDate().toString().padStart(2, '0');
+        return year + '-' + month + "-" + day + "T00:00:00";
+    }
+
     addRecords = (page) => {
         // assuming this.state.dataPosts hold all the records
         const newRecords = []
         for (var i = page * 12, il = i + 12; i < il && i <
-            this.state.responseItemsToday.length; i++) {
-            newRecords.push(this.state.responseItemsToday[i]);
+            this.state.fundItemToday.length; i++) {
+            newRecords.push(this.state.fundItemToday[i]);
         }
         this.setState({
             fundItems: [...this.state.fundItems, ...newRecords]
@@ -171,7 +311,7 @@ export default class FonGenelBilgi extends Component<Props, FonGenelBilgiState> 
                 >
                     <FlatList
                         style={{ backgroundColor: "#363E58" }}
-                        data={this.state.fundItems.sort((a, b) => a.GunlukArtisYuzdesi - b.GunlukArtisYuzdesi)}
+                        data={this.state.fundItemToday.sort((a, b) => b.GunlukArtisYuzdesi - a.GunlukArtisYuzdesi)}
                         renderItem={({ item }) => (
                             <View>
                                 <TouchableOpacity >
@@ -186,7 +326,7 @@ export default class FonGenelBilgi extends Component<Props, FonGenelBilgiState> 
                                             <View>
                                                 {item.GunlukArtisYuzdesi > 0 ? <Text style={styles.textStyleYuzdeDegisimPozitif}>{"%" + item.GunlukArtisYuzdesi.toFixed(2)}</Text> :
                                                     (item.GunlukArtisYuzdesi < 0 ? <Text style={styles.textStyleYuzdeDegisimNegatif}>{"%" + item.GunlukArtisYuzdesi.toFixed(2)}</Text> :
-                                                        <Text style={styles.textStyle}>{"%" + item.GunlukArtisYuzdesi.toFixed(2)}</Text>)}
+                                                        <Text style={styles.textStyle}>{"%" + item.GunlukArtisYuzdesi}</Text>)}
                                             </View>
                                             <View>
                                                 <Text style={styles.textStyleBirimPayDeger}>{item.BirimPayDegeri}</Text>
@@ -199,12 +339,12 @@ export default class FonGenelBilgi extends Component<Props, FonGenelBilgiState> 
                             </View>)}
                         keyExtractor={(item, index) => String(index)}
                         onEndReached={this.onScrollHandler}
-                        onEndReachedThreshold={0.5}
+                        onEndReachedThreshold={0}
                     />
                 </KeyboardAvoidingView>
             </View>
         );
     }
-    
+
 }
 
