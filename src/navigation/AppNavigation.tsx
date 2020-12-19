@@ -3,24 +3,47 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs'
 import { createDrawerNavigator } from '@react-navigation/drawer'
-import FonGenelBilgi from "../pages/FonGenelBilgi"
 import { View } from "react-native";
 import Ionicons from 'react-native-vector-icons/Ionicons';
 
 
-const HomeStack = createStackNavigator();
+import FonGenelBilgi from "../pages/FonGenelBilgi"
+import FonDetayBilgi from "../pages/FonDetayBilgi"
+import Deneme from "../pages/deneme"
 
+
+const HomeStack = createStackNavigator();
+const DenemeStack = createStackNavigator();
 
 //STACKLER
 const HomeStackScreen = () => (
   <HomeStack.Navigator>
     <HomeStack.Screen name="Fon Genel" component={FonGenelBilgi} options={{
       headerTitleStyle: { color: "white" },
+      headerTintColor:"white",
       headerBackground: () => (
-        <View style={{ backgroundColor: "#202f39", flex: 1 }} />
+        <View style={{ backgroundColor: "#1C212F", flex: 1,  }} />
+      ),
+    }} />
+    <HomeStack.Screen name="Fon Detay" component={FonDetayBilgi} options={{
+      headerTintColor:"white",
+      headerTitleStyle: { color: "white" },
+      headerBackground: () => (
+        <View style={{ backgroundColor: "#1C212F", flex: 1 }} />
       ),
     }} />
   </HomeStack.Navigator>
+);
+
+const DenemeStackScreen = () => (
+  <DenemeStack.Navigator>
+    <DenemeStack.Screen name="Deneme" component={Deneme} options={{
+      headerTitleStyle: { color: "white" },
+      headerBackground: () => (
+        <View style={{ backgroundColor: "#1C212F", flex: 1 }} />
+      ),
+    }} />
+  </DenemeStack.Navigator>
 );
 
 //TAB
@@ -53,6 +76,7 @@ const TabsScreen = () => (
       labelStyle:{fontSize:12}
     }}>
     <Tabs.Screen name="Fon Genel" component={HomeStackScreen} />
+    <Tabs.Screen name="Deneme" component={DenemeStackScreen} />
   </Tabs.Navigator>
 );
 

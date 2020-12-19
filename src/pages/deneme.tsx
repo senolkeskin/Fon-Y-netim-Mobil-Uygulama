@@ -88,7 +88,7 @@ interface FonGenelBilgiState {
     noData?: boolean;
 }
 
-export default class FonGenelBilgi extends Component<Props, FonGenelBilgiState> {
+export default class Deneme extends Component<Props, FonGenelBilgiState> {
     static navigationOptions = {
         headerShown: false,
     };
@@ -154,7 +154,7 @@ export default class FonGenelBilgi extends Component<Props, FonGenelBilgiState> 
                     var currFundValue = fundValues.find((x: FonModel) => x.Tarih.toString() == currDateString && x.FonKodu == item.FonKodu);
                     var currIterator = 0;
                     while (currFundValue == undefined && currIterator < GunSayisi.onBesGun) {
-                        currDate.setDate(currDate.getDate() - 1);
+                        currDate.setDate(currDate.getDay() + 1);
                         currDateString = this.getFormattedDateForListing(currDate);
                         currFundValue = fundValues.find((x: FonModel) => x.Tarih.toString() == currDateString && x.FonKodu == item.FonKodu);
                         currIterator++;
@@ -171,10 +171,7 @@ export default class FonGenelBilgi extends Component<Props, FonGenelBilgiState> 
                         preFundValue = fundValues.find((x: FonModel) => x.Tarih.toString() == preDateString && x.FonKodu == item.FonKodu);
                         preIterator++;
                     }
-                    if( item.FonKodu == "ELZ"){
-                        console.log(currFundValue);
-                        debugger;
-                    }
+
                     if (currFundValue != undefined && preFundValue != undefined) {
                         if (currFundValue.BirimPayDegeri != undefined && preFundValue.BirimPayDegeri != undefined) {
                             if (currFundValue.BirimPayDegeri != null && preFundValue.BirimPayDegeri != null) {
@@ -182,7 +179,7 @@ export default class FonGenelBilgi extends Component<Props, FonGenelBilgiState> 
                                     currFundValue.GunlukArtisYuzdesi = ((currFundValue.BirimPayDegeri - preFundValue.BirimPayDegeri) * 100) / currFundValue.BirimPayDegeri;
                                 }
                                 else {
-                                    
+
                                     currFundValue.GunlukArtisYuzdesi = 0;
                                 }
                             }

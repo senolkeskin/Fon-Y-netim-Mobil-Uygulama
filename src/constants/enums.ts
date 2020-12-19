@@ -24,3 +24,7 @@ export const FonTurleri = {
   KarmaFon: "Karma Fon",
   GumusFonu: "Gümüş Fonu",
 }
+
+export const GunSayisi = {
+  onBesGun: 15,
+}
