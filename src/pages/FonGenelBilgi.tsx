@@ -19,6 +19,7 @@ import { LineChart } from "react-native-chart-kit";
 import axios from "axios";
 import { FonTurleri, Gunler, GunSayisi } from "../constants/enums"
 import { TouchableOpacity } from "react-native-gesture-handler";
+import DropDownPicker from "react-native-dropdown-picker";
 
 interface Props {
     navigation: NavigationScreenProp<NavigationState>;
@@ -27,20 +28,27 @@ interface Props {
 
 
 interface FonModel {
-    BankaBonosu: number;
     BirimPayDegeri: number;
-    DevletTahvili: number;
-    Diger: number;
     DolasimdakiPaySayisi: number;
+    FonKodu: string;
+    FonTipi: string;
+    FonTuru: string;
+    FonUnvani: string;
+    Tarih: Date
+    ToplamDeger: number;
+    YatirimciSayisi: number;
+    GunlukArtisYuzdesi?: number;
+
+
+    //fon içeriği
+    DevletTahvili: number;
+    BankaBonosu: number;
+    Diger: number;
     DovizOdemeliBono: number;
     DovizOdemeliTahvil: number;
     Eurobond: number;
     FinansmanBonosu: number;
     FonKatilmaBelgesi: number;
-    FonKodu: string;
-    FonTipi: string;
-    FonTuru: string;
-    FonUnvani: string;
     GayrimenkulSertifikasi: number;
     HazineBonosu: number;
     HisseSenedi: number;
@@ -51,17 +59,15 @@ interface FonModel {
     OzelSektorKiraSertifikasi: number;
     OzelSektorTahvili: number;
     TPP: number;
-    Tarih: Date
     TersRepo: number;
-    ToplamDeger: number;
     TurevAraci: number;
     VadeliMevduat: number;
     VarligaDayaliMenkulKiymet: number;
     YabanciBorclanmaAraci: number;
     YabanciHisseSenedi: number;
     YabanciMenkulKiymet: number;
-    YatirimciSayisi: number;
-    GunlukArtisYuzdesi?: number;
+
+
 }
 
 interface FonGenelBilgiState {
@@ -86,6 +92,7 @@ interface FonGenelBilgiState {
     GumusFonu: FonModel[];
     listingData: FonModel[];
     noData?: boolean;
+    country?: any;
 }
 
 export default class FonGenelBilgi extends Component<Props, FonGenelBilgiState> {
@@ -148,7 +155,7 @@ export default class FonGenelBilgi extends Component<Props, FonGenelBilgiState> 
             fundValues.forEach((item: FonModel) => {
                 if ((!funds.some(x => x == item.FonKodu) || funds.length == 0) && item.FonTuru != FonTurleri.KorumaAmacliFon && item.FonTuru != FonTurleri.GumusFonu) {
                     funds.push(item.FonKodu);
-                    
+
                     var currDate = new Date();
                     var currDateString = this.getFormattedDateForListing(currDate);
                     var currFundValue = fundValues.find((x: FonModel) => x.Tarih.toString() == currDateString && x.FonKodu == item.FonKodu);
@@ -171,10 +178,6 @@ export default class FonGenelBilgi extends Component<Props, FonGenelBilgiState> 
                         preFundValue = fundValues.find((x: FonModel) => x.Tarih.toString() == preDateString && x.FonKodu == item.FonKodu);
                         preIterator++;
                     }
-                    if( item.FonKodu == "ELZ"){
-                        console.log(currFundValue);
-                        debugger;
-                    }
                     if (currFundValue != undefined && preFundValue != undefined) {
                         if (currFundValue.BirimPayDegeri != undefined && preFundValue.BirimPayDegeri != undefined) {
                             if (currFundValue.BirimPayDegeri != null && preFundValue.BirimPayDegeri != null) {
@@ -182,7 +185,7 @@ export default class FonGenelBilgi extends Component<Props, FonGenelBilgiState> 
                                     currFundValue.GunlukArtisYuzdesi = ((currFundValue.BirimPayDegeri - preFundValue.BirimPayDegeri) * 100) / currFundValue.BirimPayDegeri;
                                 }
                                 else {
-                                    
+
                                     currFundValue.GunlukArtisYuzdesi = 0;
                                 }
                             }
@@ -352,7 +355,31 @@ export default class FonGenelBilgi extends Component<Props, FonGenelBilgiState> 
                             />
                         </View>
 
-
+                        <View>
+                            <DropDownPicker
+                                items={[
+                                    { label: 'USA', value: 'usa', icon: () => <Icon name="flag" size={18} color="#900" /> },
+                                    { label: 'UK', value: 'uk', icon: () => <Icon name="flag" size={18} color="#900" /> },
+                                    { label: 'France', value: 'france', icon: () => <Icon name="flag" size={18} color="#900" /> },
+                                ]}
+                                defaultValue={this.state.country}
+                                containerStyle={{ height: 40 }}
+                                style={{ backgroundColor: '#363E58' }}
+                                itemStyle={{
+                                    justifyContent: 'flex-start', backgroundColor: '#363E58'
+                                }}
+                                dropDownStyle={{ backgroundColor: '#363E58' }}
+                                onChangeItem={item => this.setState({
+                                    country: item.value
+                                })}
+                                placeholder={"Fon Seçiniz"}
+                                labelStyle={{
+                                    fontSize: 14,
+                                    textAlign: 'left',
+                                    color: 'white'
+                                }}
+                            />
+                        </View>
 
                         <FlatList
                             style={{ backgroundColor: "#363E58" }}

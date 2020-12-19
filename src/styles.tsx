@@ -63,7 +63,24 @@ const styles = StyleSheet.create({
         includeFontPadding: false,
         fontSize: 11,
         fontWeight: "bold",
-      }
+      },
+      input: {
+        elevation: 2,
+        backgroundColor: '#fff',
+        color: 'black',
+        paddingTop: 0,
+        height: 50,
+        marginTop: 10,
+      },
+      pickerSelectStyles: {
+        fontSize: 16,
+        textAlign: 'center',
+        borderWidth: 1,
+        borderColor: 'gray',
+        borderRadius: 4,
+        color: 'black',
+    
+      },
 });
 
 export default styles;
