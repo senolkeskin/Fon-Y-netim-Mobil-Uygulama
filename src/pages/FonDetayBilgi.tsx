@@ -18,7 +18,8 @@ import { colors } from "../constants/colors";
 import Icon from "react-native-vector-icons/Ionicons";
 import DatePicker from 'react-native-datepicker'
 import { TouchableOpacity } from "react-native-gesture-handler";
-
+import { Tabs, Tab, TabHeading, Container } from 'native-base';
+import styles from "../styles";
 
 
 
@@ -72,6 +73,7 @@ interface FonModel {
     YabanciBorclanmaAraci: number;
     YabanciHisseSenedi: number;
     YabanciMenkulKiymet: number;
+    ArtisMiktari?: number;
 }
 
 interface FonGenelBilgiState {
@@ -90,6 +92,11 @@ interface FonGenelBilgiState {
     maxPickerBaslangicDate: string,
     minPickerBaslangicDate: string,
     inputDates: any[],
+    analyzedDailyData: FonModel[],
+    belirtilenAraliktakiArtisYuzdesi: number,
+    belirtilenAraliktakiArtisMiktari: number,
+    belirtilenAraliktakiSonFiyat: number,
+    belirtilenAraliktakiBaslangicFiyat: number,
 }
 
 export default class FonDetayBilgi extends Component<Props, FonGenelBilgiState> {
@@ -114,6 +121,11 @@ export default class FonDetayBilgi extends Component<Props, FonGenelBilgiState> 
             maxPickerBaslangicDate: null,
             minPickerBaslangicDate: null,
             inputDates: [],
+            analyzedDailyData: [],
+            belirtilenAraliktakiArtisYuzdesi: null,
+            belirtilenAraliktakiArtisMiktari: null,
+            belirtilenAraliktakiSonFiyat: null,
+            belirtilenAraliktakiBaslangicFiyat: null,
         };
     }
 
@@ -167,7 +179,9 @@ export default class FonDetayBilgi extends Component<Props, FonGenelBilgiState> 
 
 
     fetchData = async (baslangicDate: Date, bitisDate: Date) => {
+        debugger
         const fundResponse = await axios.get("https://ws.spk.gov.tr/PortfolioValues/api/PortfoyDegerleri/" + this.props.route.params.fundItem.FonKodu + "/01/" + this.getFormattedDateForApi(baslangicDate) + "/" + this.getFormattedDateForApi(bitisDate));
+        debugger
         if (fundResponse.status == 200 && fundResponse.data != null && fundResponse.data.length > 0) {
             var funds: FonModel[] = fundResponse.data;
             var labelsView: string[] = [];
@@ -228,13 +242,43 @@ export default class FonDetayBilgi extends Component<Props, FonGenelBilgiState> 
 
             })
 
+            //analysis
+            var analyzedDailyData: FonModel[] = []
+            var iterator = 0;
+            funds.forEach((item: FonModel) => {
+                if (iterator == 0) {
+                    item.GunlukArtisYuzdesi = 0;
+                    item.ArtisMiktari = 0;
+                    analyzedDailyData.push(item)
+                }
+                else {
+                    item.GunlukArtisYuzdesi = ((item.BirimPayDegeri - funds[iterator - 1].BirimPayDegeri) * 100) / item.BirimPayDegeri;
+                    item.ArtisMiktari = (item.BirimPayDegeri - funds[iterator - 1].BirimPayDegeri);
+                    analyzedDailyData.push(item);
+                }
+
+                iterator++;
+            })
+
+            if (funds.length > 0) {
+                var belirtilenAraliktakiBaslangicFiyat: number = funds[0].BirimPayDegeri;
+                var belirtilenAraliktakiSonFiyat: number = funds[funds.length - 1].BirimPayDegeri;
+                var belirtilenAraliktakiArtisYuzdesi: number = ((funds[funds.length - 1].BirimPayDegeri - funds[0].BirimPayDegeri) * 100) / funds[funds.length - 1].BirimPayDegeri;
+                var belirtilenAraliktakiArtisMiktari: number = (funds[funds.length - 1].BirimPayDegeri - funds[0].BirimPayDegeri);
+
+            }
             this.setState({
                 fundItems: funds,
                 labelsView: labelsView,
                 dataView: dataView,
                 dataVictory: dataVictory,
                 dataVictoryForPieChart: pieChartValues,
-                lastFundValue: lastFundValue
+                lastFundValue: lastFundValue,
+                analyzedDailyData: analyzedDailyData,
+                belirtilenAraliktakiArtisYuzdesi: belirtilenAraliktakiArtisYuzdesi,
+                belirtilenAraliktakiArtisMiktari: belirtilenAraliktakiArtisMiktari,
+                belirtilenAraliktakiSonFiyat: belirtilenAraliktakiSonFiyat,
+                belirtilenAraliktakiBaslangicFiyat: belirtilenAraliktakiBaslangicFiyat,
             }, () => this.setState({ isVisibleLineChart: true }))
 
         }
@@ -290,7 +334,7 @@ export default class FonDetayBilgi extends Component<Props, FonGenelBilgiState> 
     lineChart() {
         return (
             <View>
-                <VictoryChart height={250} width={screenWidth}
+                <VictoryChart height={280} width={screenWidth}
                     containerComponent={
                         <VictoryVoronoiContainer
                             voronoiDimension="x"
@@ -340,7 +384,7 @@ export default class FonDetayBilgi extends Component<Props, FonGenelBilgiState> 
         return (
             <View style={{ flexDirection: "row" }}>
                 <View style={{ flex: 5 }}>
-                    <Svg width={screenWidth} height={280} viewBox="80 0 400 400" >
+                    <Svg width={screenWidth} height={230} viewBox="80 0 400 400">
                         <VictoryPie
                             standalone={false}
                             //labelRadius={150}
@@ -388,89 +432,229 @@ export default class FonDetayBilgi extends Component<Props, FonGenelBilgiState> 
         }, () => this.fetchData(this.state.baslangicDate, this.state.bitisDate))
     }
 
+    dataAnalysisView(fundItems: FonModel[]) {
+        // if (this.state.isVisibleLineChart) {
+
+        //     debugger;
+
+
+        //     return (
+        //         <View>
+        //             {analyzedDailyData.map(data => <View><Text>{data.Tarih.toISOString() + " " + data.GunlukArtisYuzdesi}</Text></View>)}
+        //         </View>
+        //     );
+
+
+
+        // }
+    }
+
     render() {
+        const genelBilgi: FonModel = this.props.route.params.fundItem;
+
         return (
             <View style={{ backgroundColor: colors.backgroundColor, flex: 1 }}>
                 <StatusBar backgroundColor="#363E58" />
 
-                <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"}>
-                    {this.state.isVisibleLineChart ?
-                        <ScrollView style={{ backgroundColor: colors.backgroundColor }}>
-                            <View style={{ alignItems: "center", justifyContent: "center", margin: 10 }}>
-                                <Text style={{ fontSize: 15, textAlign: "center", color: "white" }}>{this.state.lastFundValue.FonUnvani}</Text>
-                            </View>
+                <Container>
+                    <Tabs tabBarPosition='bottom' tabContainerStyle={{ height: 1 }}
+                        tabBarUnderlineStyle={{
+                            backgroundColor: colors.backgroundColor,
+                            height: 2,
+                        }}>
 
-                            <View style={{ flexDirection: "row", marginTop: 10 }}>
-                                <DatePicker
-                                    style={{ width: screenWidth / 2, backgroundColor: colors.backgroundColor }}
-                                    date={this.state.datePickerBaslangicDate}
-                                    mode="date"
-                                    placeholder="select date"
-                                    format="DD-MM-YYYY"
-                                    minDate={this.state.minPickerBaslangicDate}
-                                    maxDate={this.state.maxPickerBaslangicDate}
-                                    confirmBtnText="Confirm"
-                                    cancelBtnText="Cancel"
-                                    customStyles={{
-                                        dateIcon: {
-                                            position: 'absolute',
-                                            left: 0,
-                                            top: 4,
-                                            marginLeft: 0,
-                                        },
-                                        dateInput: {
-                                            marginLeft: 36,
+                        <Tab heading={<TabHeading></TabHeading>}>
+                            <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"}>
+                                {this.state.isVisibleLineChart ?
+                                    <ScrollView style={{ backgroundColor: colors.backgroundColor }}>
+                                        <View style={{ alignItems: "center", justifyContent: "center", padding: 10, borderColor: "white", borderWidth: 1 }}>
+                                            <View>
+                                                <Text style={{ fontSize: 15, textAlign: "center", color: "white" }}>{genelBilgi.FonKodu}</Text>
+                                            </View>
+                                            <View>
+                                                <Text style={{ fontSize: 15, textAlign: "center", color: "white" }}>{genelBilgi.FonUnvani}</Text>
+                                            </View>
+                                            <View style={{padding:3}}>
+                                                <Text style={{ fontSize: 15, textAlign: "center", color: "white" }}>{genelBilgi.FonTuru}</Text>
+                                            </View>
+                                            <View style={{ flexDirection: "row", paddingTop: 5,borderBottomWidth:1, borderBottomColor:"gray" }}>
+                                                <View style={{ flex: 1 }}>
+                                                    <Text style={{ fontSize: 12, textAlign: "center", color: "white" }}>{"Yatırımcı Sayısı"}</Text>
+                                                </View>
+                                                <View style={{ flex: 1 }}>
+                                                    <Text style={{ fontSize: 12, textAlign: "center", color: "white" }}>{"Fon Toplam Değeri"}</Text>
+                                                </View>
+                                                <View style={{ flex: 1 }}>
+                                                    <Text style={{ fontSize: 12, textAlign: "center", color: "white" }}>{"Pay Sayısı"}</Text>
+                                                </View>
+                                            </View>
+                                            <View style={{ flexDirection: "row", paddingTop: 5 }}>
+                                                <View style={{ flex: 1 }}>
+                                                    <Text style={{ fontSize: 12, textAlign: "center", color: "white" }}>{genelBilgi.YatirimciSayisi}</Text>
+                                                </View>
+                                                <View style={{ flex: 1 }}>
+                                                    <Text style={{ fontSize: 12, textAlign: "center", color: "white" }}>{genelBilgi.ToplamDeger.toLocaleString()}</Text>
+                                                </View>
+                                                <View style={{ flex: 1 }}>
+                                                    <Text style={{ fontSize: 12, textAlign: "center", color: "white" }}>{genelBilgi.DolasimdakiPaySayisi.toLocaleString()}</Text>
+                                                </View>
+                                            </View>
 
-                                        },
-                                        dateText: {
-                                            color: "white"
-                                        }
-                                        // ... You can check the source to find the other keys.
-                                    }}
-                                    onDateChange={(date) => { this.getDataBetweenDate(date, true) }}
-                                />
-                                <DatePicker
-                                    style={{ width: screenWidth / 2, backgroundColor: colors.backgroundColor }}
-                                    date={this.state.datePickerBitisDate}
-                                    mode="date"
-                                    placeholder="select date"
-                                    format="DD-MM-YYYY"
-                                    minDate={this.state.minPickerBaslangicDate}
-                                    maxDate={this.state.maxPickerBaslangicDate}
-                                    confirmBtnText="Confirm"
-                                    cancelBtnText="Cancel"
-                                    customStyles={{
-                                        dateIcon: {
-                                            position: 'absolute',
-                                            left: 0,
-                                            top: 4,
-                                            marginLeft: 0
-                                        },
-                                        dateInput: {
-                                            marginLeft: 36
-                                        },
-                                        dateText: {
-                                            color: "white"
-                                        }
-                                        // ... You can check the source to find the other keys.
-                                    }}
-                                    onDateChange={(date) => { this.getDataBetweenDate(date, false) }}
-                                />
-                            </View>
+                                        </View>
 
-                            <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "center", margin: 5 }}>
-                                {this.state.inputDates.map(r =>
-                                    <TouchableOpacity style={{ backgroundColor: r.selected ? "#D35400" : "#808B96", borderRadius: 2, elevation: 2, padding: 10, paddingLeft: 15, paddingRight: 15, shadowColor: "#E74C3C" }}
-                                        onPress={() => this.dateChanged(r)}>
-                                        <View style={{}}><Text style={{ color: colors.White }}>{r.label}</Text></View>
-                                    </TouchableOpacity>
-                                )}
-                            </View>
+                                        <View style={{ flexDirection: "row", marginTop: 2 }}>
+                                            <DatePicker
+                                                style={{ width: screenWidth / 2, backgroundColor: colors.backgroundColor }}
+                                                date={this.state.datePickerBaslangicDate}
+                                                mode="date"
+                                                placeholder="select date"
+                                                format="DD-MM-YYYY"
+                                                minDate={this.state.minPickerBaslangicDate}
+                                                maxDate={this.state.maxPickerBaslangicDate}
+                                                confirmBtnText="Confirm"
+                                                cancelBtnText="Cancel"
+                                                customStyles={{
+                                                    dateIcon: {
+                                                        position: 'absolute',
+                                                        left: 0,
+                                                        top: 4,
+                                                        marginLeft: 0,
+                                                    },
+                                                    dateInput: {
+                                                        marginLeft: 36,
 
-                            <View>{this.lineChart()}</View>
-                            <View>{this.pieChart()}</View>
-                        </ScrollView> : null}
-                </KeyboardAvoidingView>
+                                                    },
+                                                    dateText: {
+                                                        color: "white"
+                                                    }
+                                                    // ... You can check the source to find the other keys.
+                                                }}
+                                                onDateChange={(date) => { this.getDataBetweenDate(date, true) }}
+                                            />
+                                            <DatePicker
+                                                style={{ width: screenWidth / 2, backgroundColor: colors.backgroundColor }}
+                                                date={this.state.datePickerBitisDate}
+                                                mode="date"
+                                                placeholder="select date"
+                                                format="DD-MM-YYYY"
+                                                minDate={this.state.minPickerBaslangicDate}
+                                                maxDate={this.state.maxPickerBaslangicDate}
+                                                confirmBtnText="Confirm"
+                                                cancelBtnText="Cancel"
+                                                customStyles={{
+                                                    dateIcon: {
+                                                        position: 'absolute',
+                                                        left: 0,
+                                                        top: 4,
+                                                        marginLeft: 0
+                                                    },
+                                                    dateInput: {
+                                                        marginLeft: 36
+                                                    },
+                                                    dateText: {
+                                                        color: "white"
+                                                    }
+                                                    // ... You can check the source to find the other keys.
+                                                }}
+                                                onDateChange={(date) => { this.getDataBetweenDate(date, false) }}
+                                            />
+                                        </View>
+
+                                        <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "center", margin: 5 }}>
+                                            {this.state.inputDates.map(r =>
+                                                <TouchableOpacity style={{ backgroundColor: r.selected ? "#D35400" : "#808B96", borderRadius: 2, elevation: 2, padding: 10, paddingLeft: 15, paddingRight: 15, shadowColor: "#E74C3C" }}
+                                                    onPress={() => this.dateChanged(r)}>
+                                                    <View style={{}}><Text style={{ color: colors.White }}>{r.label}</Text></View>
+                                                </TouchableOpacity>
+                                            )}
+                                        </View>
+                                        <View style={{ borderWidth: 1, borderColor: "gray" }}>
+                                            <View style={{ padding: 2, flexDirection: "row", paddingHorizontal: 10, justifyContent: "center", alignItems: "center", }}>
+                                                <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+                                                    <Text style={{ flex: 1, fontSize: 13, fontWeight: "bold", color: colors.White }}>{"Başlangıç Fiyat"}</Text>
+                                                </View>
+                                                <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+                                                    <Text style={{ flex: 1, fontSize: 13, fontWeight: "bold", color: colors.White }}>{"Son Fiyat"}</Text>
+                                                </View>
+                                                <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+                                                    <Text style={{ flex: 1, fontSize: 13, fontWeight: "bold", color: colors.White }}>{"Getiri"}</Text>
+                                                </View>
+                                                <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+                                                    <Text style={{ flex: 1, fontSize: 13, fontWeight: "bold", color: colors.White }}>{"Yüzdelik Artış"}</Text>
+                                                </View>
+                                            </View>
+                                            <View style={{ padding: 2, flexDirection: "row", paddingHorizontal: 10, justifyContent: "center", alignItems: "center" }}>
+                                                <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+                                                    <Text style={{ flex: 1, fontSize: 13, fontWeight: "bold", color: colors.White }}>{this.state.belirtilenAraliktakiBaslangicFiyat}</Text>
+                                                </View>
+                                                <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+                                                    <Text style={{ flex: 1, fontSize: 13, fontWeight: "bold", color: colors.White }}>{this.state.belirtilenAraliktakiSonFiyat}</Text>
+                                                </View>
+                                                <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+                                                    <Text style={{ flex: 1, fontSize: 13, fontWeight: "bold", color: colors.White }}>{this.state.belirtilenAraliktakiArtisMiktari.toFixed(6)}</Text>
+                                                </View>
+                                                <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+                                                    {this.state.belirtilenAraliktakiArtisYuzdesi > 0 ? <Text style={styles.textStyleYuzdeDegisimPozitif}>{"%" + this.state.belirtilenAraliktakiArtisYuzdesi.toFixed(2)}</Text> :
+                                                        (this.state.belirtilenAraliktakiArtisYuzdesi < 0 ? <Text style={styles.textStyleYuzdeDegisimNegatif}>{"%" + this.state.belirtilenAraliktakiArtisYuzdesi.toFixed(2)}</Text> :
+                                                            <Text style={styles.textStyle}>{"%" + this.state.belirtilenAraliktakiArtisYuzdesi}</Text>)}
+                                                </View>
+                                            </View>
+                                        </View>
+                                        <View>{this.lineChart()}</View>
+                                        <View>{this.pieChart()}</View>
+                                    </ScrollView> : null}
+                            </KeyboardAvoidingView>
+                        </Tab>
+                        <Tab heading={<TabHeading></TabHeading>}>
+                            <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"}>
+                                {this.state.isVisibleLineChart ?
+
+                                    <ScrollView style={{ backgroundColor: colors.backgroundColor, height: "100%" }} >
+                                        <View style={{ alignItems: "center", justifyContent: "center", padding: 10, borderColor: "white", borderWidth: 1 }}>
+                                            <Text style={{ fontSize: 15, textAlign: "center", color: "white" }}>{this.state.lastFundValue.FonUnvani}</Text>
+                                        </View>
+                                        <View style={{ justifyContent: "center", alignItems: "center", padding: 10 }}><Text style={{ textAlign: "center", fontSize: 12, color: colors.White }}>{"Günlük Artış Yüzdeleri (Başlangıç Günü %0)"}</Text></View>
+                                        <View style={{ margin: 5 }}>
+                                            <View style={{ margin: 5, flexDirection: "row", borderBottomWidth: 2, borderBottomColor: colors.White }}>
+                                                <Text style={{ flex: 1, fontSize: 15, fontWeight: "bold", color: colors.White }}>
+                                                    {"Tarih"}
+                                                </Text>
+                                                <Text style={{ flex: 1.4, fontSize: 15, fontWeight: "bold", color: colors.White }}>
+                                                    {"Fiyat (Artış Miktarı)"}
+                                                </Text>
+                                                <Text style={{ flex: 1, fontSize: 15, fontWeight: "bold", color: colors.White }}>
+                                                    {"Yüzdelik Artış"}
+                                                </Text>
+                                            </View>
+                                            {this.state.analyzedDailyData.map(data =>
+                                                <View style={{ padding: 5, flexDirection: "row", borderColor: "gray", borderWidth: 1 }}>
+                                                    <View style={{ flex: 1 }}>
+                                                        <Text style={{ color: colors.White }} >
+                                                            {this.getFormattedDateForView(data.Tarih)}
+                                                        </Text>
+                                                    </View>
+                                                    <View style={{ flex: 1.4 }}>
+                                                        <Text style={{ color: colors.White }} >
+                                                            {data.BirimPayDegeri + "(" + data.ArtisMiktari.toFixed(6) + ")"}
+                                                        </Text>
+                                                    </View>
+
+                                                    <View style={{ flex: 0.8 }}>
+                                                        {data.GunlukArtisYuzdesi > 0 ? <Text style={styles.textStyleYuzdeDegisimPozitif}>{"%" + data.GunlukArtisYuzdesi.toFixed(2)}</Text> :
+                                                            (data.GunlukArtisYuzdesi < 0 ? <Text style={styles.textStyleYuzdeDegisimNegatif}>{"%" + data.GunlukArtisYuzdesi.toFixed(2)}</Text> :
+                                                                <Text style={styles.textStyle}>{"%" + data.GunlukArtisYuzdesi}</Text>)}
+                                                    </View>
+                                                </View>)}
+                                        </View>
+                                    </ScrollView> : null}
+                            </KeyboardAvoidingView>
+                        </Tab>
+
+                    </Tabs>
+                </Container>
+
+
+
 
             </View >
         );
