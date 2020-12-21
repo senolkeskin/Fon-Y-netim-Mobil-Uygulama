@@ -20,6 +20,7 @@ import axios from "axios";
 import { FonTurleri, Gunler, GunSayisi } from "../constants/enums"
 import { TouchableOpacity } from "react-native-gesture-handler";
 import DropDownPicker from "react-native-dropdown-picker";
+import AsyncStorage from "@react-native-community/async-storage"
 
 interface Props {
     navigation: NavigationScreenProp<NavigationState>;
@@ -93,6 +94,8 @@ interface FonGenelBilgiState {
     listingData: FonModel[];
     noData?: boolean;
     country?: any;
+    isloading?: boolean;
+    dropDownPickerItems: any;
 }
 
 export default class FonGenelBilgi extends Component<Props, FonGenelBilgiState> {
@@ -123,6 +126,8 @@ export default class FonGenelBilgi extends Component<Props, FonGenelBilgiState> 
             KarmaFon: [],
             GumusFonu: [],
             listingData: [],
+            isloading: true,
+            dropDownPickerItems: [],
         };
     }
 
@@ -131,8 +136,13 @@ export default class FonGenelBilgi extends Component<Props, FonGenelBilgiState> 
         var oneMonthAgoDate = new Date();
         oneMonthAgoDate.setDate(dateNow.getDate() - GunSayisi.onBesGun);
 
+        this.fetchData(oneMonthAgoDate, dateNow);
+    }
+
+    fetchData = async (baslangicDate: Date, bitisDate: Date) => {
+
         //günün verileri
-        const fundResponse = await axios.get("https://ws.spk.gov.tr/PortfolioValues/api/PortfoyDegerleri/01/" + this.getFormattedDateForApi(oneMonthAgoDate) + "/" + this.getFormattedDateForApi(dateNow));
+        const fundResponse = await axios.get("https://ws.spk.gov.tr/PortfolioValues/api/PortfoyDegerleri/01/" + this.getFormattedDateForApi(baslangicDate) + "/" + this.getFormattedDateForApi(bitisDate));
         var funds: any[] = [];
         if (fundResponse.status == 200 && fundResponse.data != null && fundResponse.data.length > 0) {
             var fundValues: FonModel[] = fundResponse.data;
@@ -152,6 +162,8 @@ export default class FonGenelBilgi extends Component<Props, FonGenelBilgiState> 
             var KiraSertifikasıFonu: FonModel[] = [];
             var KarmaFon: FonModel[] = [];
             var GumusFonu: FonModel[] = [];
+            var KarmaVeDegiskenFonlarToday: FonModel[] = [];
+            var KarmaVeDegiskenFonlarOneMonthAgo: FonModel[] = [];
             fundValues.forEach((item: FonModel) => {
                 if ((!funds.some(x => x == item.FonKodu) || funds.length == 0) && item.FonTuru != FonTurleri.KorumaAmacliFon && item.FonTuru != FonTurleri.GumusFonu) {
                     funds.push(item.FonKodu);
@@ -178,6 +190,8 @@ export default class FonGenelBilgi extends Component<Props, FonGenelBilgiState> 
                         preFundValue = fundValues.find((x: FonModel) => x.Tarih.toString() == preDateString && x.FonKodu == item.FonKodu);
                         preIterator++;
                     }
+
+
                     if (currFundValue != undefined && preFundValue != undefined) {
                         if (currFundValue.BirimPayDegeri != undefined && preFundValue.BirimPayDegeri != undefined) {
                             if (currFundValue.BirimPayDegeri != null && preFundValue.BirimPayDegeri != null) {
@@ -248,11 +262,33 @@ export default class FonGenelBilgi extends Component<Props, FonGenelBilgiState> 
                         else if (currFundValue.FonTuru == FonTurleri.KorumaAmacliFon) {
                             KorumaAmacliFon.push(currFundValue);
                         }
+
+                        //analiz için
+                        if (currFundValue.FonTuru == FonTurleri.KarmaFon || currFundValue.FonTuru == FonTurleri.DegiskenFon) {
+                            KarmaVeDegiskenFonlarToday.push(currFundValue);
+                            KarmaVeDegiskenFonlarOneMonthAgo.push(item);
+                        }
                     }
-
-
                 }
             })
+
+            var dropDownPickerItems = [
+                { label: "Tüm Fonlar", value: "Tüm Fonlar" },
+                { label: FonTurleri.DegiskenFon, value: FonTurleri.DegiskenFon },
+                { label: FonTurleri.BorclanmaAraclariFonu, value: FonTurleri.BorclanmaAraclariFonu },
+                { label: FonTurleri.HisseSenediFonu, value: FonTurleri.HisseSenediFonu },
+                { label: FonTurleri.ParaPiyasasiFonu, value: FonTurleri.ParaPiyasasiFonu },
+                { label: FonTurleri.AltinFonu, value: FonTurleri.AltinFonu },
+                { label: FonTurleri.FonSepetiFonu, value: FonTurleri.FonSepetiFonu },
+                { label: FonTurleri.AltinVeDigerKiymetliMadenlerFonu, value: FonTurleri.AltinVeDigerKiymetliMadenlerFonu },
+                { label: FonTurleri.KatilimFonu, value: FonTurleri.KatilimFonu },
+                { label: FonTurleri.HisseSenediYogunFon, value: FonTurleri.HisseSenediYogunFon },
+                { label: FonTurleri.BosFon, value: FonTurleri.BosFon },
+                { label: FonTurleri.KiraSertifikasıFonu, value: FonTurleri.KiraSertifikasıFonu },
+                { label: FonTurleri.KarmaFon, value: FonTurleri.KarmaFon },
+                { label: FonTurleri.GumusFonu, value: FonTurleri.GumusFonu },]
+
+            this.allFundTypeDistribution(KarmaVeDegiskenFonlarToday, KarmaVeDegiskenFonlarOneMonthAgo);
 
             this.setState({
                 fundItemToday: fundItemToday,
@@ -271,11 +307,10 @@ export default class FonGenelBilgi extends Component<Props, FonGenelBilgiState> 
                 KiraSertifikasıFonu: KiraSertifikasıFonu,
                 KarmaFon: KarmaFon,
                 GumusFonu: GumusFonu,
-
-            }, () => this.addRecords(0))
+                dropDownPickerItems: dropDownPickerItems,
+            }, () => this.setState({ isloading: false }))
         }
     }
-
     searchText = (e: string) => {
         let text = e.toLowerCase()
         let trucks = this.state.fundItemToday
@@ -298,23 +333,19 @@ export default class FonGenelBilgi extends Component<Props, FonGenelBilgiState> 
             })
         }
     }
-
-
     getFormattedDateForApi(date: Date) {
         let year = date.getFullYear();
         let month = (1 + date.getMonth()).toString().padStart(2, '0');
         let day = date.getDate().toString().padStart(2, '0');
         return month + '-' + day + "-" + year;
     }
-
     getFormattedDateForListing(date: Date) {
         let year = date.getFullYear();
         let month = (1 + date.getMonth()).toString().padStart(2, '0');
         let day = date.getDate().toString().padStart(2, '0');
         return year + '-' + month + "-" + day + "T00:00:00";
     }
-
-    addRecords = (page) => {
+    addRecords = (page: number) => {
         // assuming this.state.dataPosts hold all the records
         const newRecords = []
         for (var i = page * 12, il = i + 12; i < il && i <
@@ -325,13 +356,172 @@ export default class FonGenelBilgi extends Component<Props, FonGenelBilgiState> 
             fundItems: [...this.state.fundItems, ...newRecords]
         });
     }
-
     onScrollHandler = () => {
         this.setState({
             page: this.state.page + 1
         }, () => {
             this.addRecords(this.state.page);
         });
+    }
+    dropDownItemSelect(value: string) {
+        var listData: FonModel[] = [];
+        if (value == "Tüm Fonlar") {
+            listData = this.state.fundItemToday;
+        }
+        else {
+            listData = this.state.fundItemToday.filter(x => x.FonTuru == value);
+        }
+        this.setState({
+            listingData: listData,
+        })
+    }
+
+    allFundTypeDistribution = async(KarmaVeDegiskenFonlarToday: FonModel[], KarmaVeDegiskenFonlarOneMonthAgo: FonModel[]) => {
+        var fonDetayListMonthlyStatistic: FonModel = {
+            BirimPayDegeri: 0,
+            DolasimdakiPaySayisi: 0,
+            FonKodu: "",
+            FonTipi: "",
+            FonTuru: "",
+            FonUnvani: "",
+            Tarih: null,
+            ToplamDeger: 0,
+            YatirimciSayisi: 0,
+            GunlukArtisYuzdesi: 0,
+            DevletTahvili: 0,
+            BankaBonosu: 0,
+            Diger: 0,
+            DovizOdemeliBono: 0,
+            DovizOdemeliTahvil: 0,
+            Eurobond: 0,
+            FinansmanBonosu: 0,
+            FonKatilmaBelgesi: 0,
+            GayrimenkulSertifikasi: 0,
+            HazineBonosu: 0,
+            HisseSenedi: 0,
+            KamuDisBorclanmaAraci: 0,
+            KamuKiraSertifikasi: 0,
+            KatilimHesabi: 0,
+            KiymetliMaden: 0,
+            OzelSektorKiraSertifikasi: 0,
+            OzelSektorTahvili: 0,
+            TPP: 0,
+            TersRepo: 0,
+            TurevAraci: 0,
+            VadeliMevduat: 0,
+            VarligaDayaliMenkulKiymet: 0,
+            YabanciBorclanmaAraci: 0,
+            YabanciHisseSenedi: 0,
+            YabanciMenkulKiymet: 0,
+        }
+        var fonDetayDistributionToday: FonModel = {
+            BirimPayDegeri: 0,
+            DolasimdakiPaySayisi: 0,
+            FonKodu: "",
+            FonTipi: "",
+            FonTuru: "",
+            FonUnvani: "",
+            Tarih: null,
+            ToplamDeger: 0,
+            YatirimciSayisi: 0,
+            GunlukArtisYuzdesi: 0,
+            DevletTahvili: 0,
+            BankaBonosu: 0,
+            Diger: 0,
+            DovizOdemeliBono: 0,
+            DovizOdemeliTahvil: 0,
+            Eurobond: 0,
+            FinansmanBonosu: 0,
+            FonKatilmaBelgesi: 0,
+            GayrimenkulSertifikasi: 0,
+            HazineBonosu: 0,
+            HisseSenedi: 0,
+            KamuDisBorclanmaAraci: 0,
+            KamuKiraSertifikasi: 0,
+            KatilimHesabi: 0,
+            KiymetliMaden: 0,
+            OzelSektorKiraSertifikasi: 0,
+            OzelSektorTahvili: 0,
+            TPP: 0,
+            TersRepo: 0,
+            TurevAraci: 0,
+            VadeliMevduat: 0,
+            VarligaDayaliMenkulKiymet: 0,
+            YabanciBorclanmaAraci: 0,
+            YabanciHisseSenedi: 0,
+            YabanciMenkulKiymet: 0,
+        }
+
+        //karma ve değişken fonlarda 30 gün önceki duruma göre olan değişim
+        KarmaVeDegiskenFonlarToday.forEach(item => {
+            var oneMonthAgoItem = KarmaVeDegiskenFonlarOneMonthAgo.find(x => x.FonKodu == item.FonKodu);
+            if (oneMonthAgoItem != undefined && oneMonthAgoItem != null) {
+                //aylık artış azalış
+                fonDetayListMonthlyStatistic.DevletTahvili += item.DevletTahvili - oneMonthAgoItem.DevletTahvili;
+                fonDetayListMonthlyStatistic.BankaBonosu += item.BankaBonosu - oneMonthAgoItem.BankaBonosu;
+                fonDetayListMonthlyStatistic.Diger += item.Diger - oneMonthAgoItem.Diger;
+                fonDetayListMonthlyStatistic.DovizOdemeliBono += item.DovizOdemeliBono - oneMonthAgoItem.DovizOdemeliBono;
+                fonDetayListMonthlyStatistic.DovizOdemeliTahvil += item.DovizOdemeliTahvil - oneMonthAgoItem.DovizOdemeliTahvil;
+                fonDetayListMonthlyStatistic.Eurobond += item.Eurobond - oneMonthAgoItem.Eurobond;
+                fonDetayListMonthlyStatistic.FinansmanBonosu += item.FinansmanBonosu - oneMonthAgoItem.FinansmanBonosu;
+                fonDetayListMonthlyStatistic.FonKatilmaBelgesi += item.FonKatilmaBelgesi - oneMonthAgoItem.FonKatilmaBelgesi;
+                fonDetayListMonthlyStatistic.GayrimenkulSertifikasi += item.GayrimenkulSertifikasi - oneMonthAgoItem.GayrimenkulSertifikasi;
+                fonDetayListMonthlyStatistic.HazineBonosu += item.HazineBonosu - oneMonthAgoItem.HazineBonosu;
+                fonDetayListMonthlyStatistic.HisseSenedi += item.HisseSenedi - oneMonthAgoItem.HisseSenedi;
+                fonDetayListMonthlyStatistic.KamuDisBorclanmaAraci += item.KamuDisBorclanmaAraci - oneMonthAgoItem.KamuDisBorclanmaAraci;
+                fonDetayListMonthlyStatistic.KamuKiraSertifikasi += item.KamuKiraSertifikasi - oneMonthAgoItem.KamuKiraSertifikasi;
+                fonDetayListMonthlyStatistic.KiymetliMaden += item.KiymetliMaden - oneMonthAgoItem.KiymetliMaden;
+                fonDetayListMonthlyStatistic.OzelSektorKiraSertifikasi += item.OzelSektorKiraSertifikasi - oneMonthAgoItem.OzelSektorKiraSertifikasi;
+                fonDetayListMonthlyStatistic.OzelSektorTahvili += item.OzelSektorTahvili - oneMonthAgoItem.OzelSektorTahvili;
+                fonDetayListMonthlyStatistic.TPP += item.TPP - oneMonthAgoItem.TPP;
+                fonDetayListMonthlyStatistic.TersRepo += item.TersRepo - oneMonthAgoItem.TersRepo;
+                fonDetayListMonthlyStatistic.TurevAraci += item.TurevAraci - oneMonthAgoItem.TurevAraci;
+                fonDetayListMonthlyStatistic.VadeliMevduat += item.VadeliMevduat - oneMonthAgoItem.VadeliMevduat;
+                fonDetayListMonthlyStatistic.VarligaDayaliMenkulKiymet += item.VarligaDayaliMenkulKiymet - oneMonthAgoItem.VarligaDayaliMenkulKiymet;
+                fonDetayListMonthlyStatistic.YabanciBorclanmaAraci += item.YabanciBorclanmaAraci - oneMonthAgoItem.YabanciBorclanmaAraci;
+                fonDetayListMonthlyStatistic.YabanciHisseSenedi += item.YabanciHisseSenedi - oneMonthAgoItem.YabanciHisseSenedi;
+                fonDetayListMonthlyStatistic.YabanciMenkulKiymet += item.YabanciMenkulKiymet - oneMonthAgoItem.YabanciMenkulKiymet;
+
+                //günlük dağılımı
+                fonDetayDistributionToday.DevletTahvili += item.DevletTahvili / KarmaVeDegiskenFonlarToday.length;
+                fonDetayDistributionToday.BankaBonosu += item.BankaBonosu / KarmaVeDegiskenFonlarToday.length;
+                fonDetayDistributionToday.Diger += item.Diger / KarmaVeDegiskenFonlarToday.length;
+                fonDetayDistributionToday.DovizOdemeliBono += item.DovizOdemeliBono / KarmaVeDegiskenFonlarToday.length;
+                fonDetayDistributionToday.DovizOdemeliTahvil += item.DovizOdemeliTahvil / KarmaVeDegiskenFonlarToday.length;
+                fonDetayDistributionToday.Eurobond += item.Eurobond / KarmaVeDegiskenFonlarToday.length;
+                fonDetayDistributionToday.FinansmanBonosu += item.FinansmanBonosu / KarmaVeDegiskenFonlarToday.length;
+                fonDetayDistributionToday.FonKatilmaBelgesi += item.FonKatilmaBelgesi / KarmaVeDegiskenFonlarToday.length;
+                fonDetayDistributionToday.GayrimenkulSertifikasi += item.GayrimenkulSertifikasi / KarmaVeDegiskenFonlarToday.length;
+                fonDetayDistributionToday.HazineBonosu += item.HazineBonosu / KarmaVeDegiskenFonlarToday.length;
+                fonDetayDistributionToday.HisseSenedi += item.HisseSenedi / KarmaVeDegiskenFonlarToday.length;
+                fonDetayDistributionToday.KamuDisBorclanmaAraci += item.KamuDisBorclanmaAraci / KarmaVeDegiskenFonlarToday.length;
+                fonDetayDistributionToday.KamuKiraSertifikasi += item.KamuKiraSertifikasi / KarmaVeDegiskenFonlarToday.length;
+                fonDetayDistributionToday.KiymetliMaden += item.KiymetliMaden / KarmaVeDegiskenFonlarToday.length;
+                fonDetayDistributionToday.OzelSektorKiraSertifikasi += item.OzelSektorKiraSertifikasi / KarmaVeDegiskenFonlarToday.length;
+                fonDetayDistributionToday.OzelSektorTahvili += item.OzelSektorTahvili / KarmaVeDegiskenFonlarToday.length;
+                fonDetayDistributionToday.TPP += item.TPP / KarmaVeDegiskenFonlarToday.length;
+                fonDetayDistributionToday.TersRepo += item.TersRepo / KarmaVeDegiskenFonlarToday.length;
+                fonDetayDistributionToday.TurevAraci += item.TurevAraci / KarmaVeDegiskenFonlarToday.length;
+                fonDetayDistributionToday.VadeliMevduat += item.VadeliMevduat / KarmaVeDegiskenFonlarToday.length;
+                fonDetayDistributionToday.VarligaDayaliMenkulKiymet += item.VarligaDayaliMenkulKiymet / KarmaVeDegiskenFonlarToday.length;
+                fonDetayDistributionToday.YabanciBorclanmaAraci += item.YabanciBorclanmaAraci / KarmaVeDegiskenFonlarToday.length;
+                fonDetayDistributionToday.YabanciHisseSenedi += item.YabanciHisseSenedi / KarmaVeDegiskenFonlarToday.length;
+                fonDetayDistributionToday.YabanciMenkulKiymet += item.YabanciMenkulKiymet / KarmaVeDegiskenFonlarToday.length;
+            }
+        })
+
+        try {
+            const arr: FonModel[] = []
+            arr.push(fonDetayListMonthlyStatistic)
+            arr.push(fonDetayDistributionToday)
+            const jsonValue = JSON.stringify(arr)
+            await AsyncStorage.setItem("fonModelStatistics",jsonValue);
+          } catch (error) {
+            console.log(error);
+            debugger;
+          }
+
+        debugger;
     }
 
     render() {
@@ -357,11 +547,7 @@ export default class FonGenelBilgi extends Component<Props, FonGenelBilgiState> 
 
                         <View>
                             <DropDownPicker
-                                items={[
-                                    { label: 'USA', value: 'usa', icon: () => <Icon name="flag" size={18} color="#900" /> },
-                                    { label: 'UK', value: 'uk', icon: () => <Icon name="flag" size={18} color="#900" /> },
-                                    { label: 'France', value: 'france', icon: () => <Icon name="flag" size={18} color="#900" /> },
-                                ]}
+                                items={this.state.dropDownPickerItems}
                                 defaultValue={this.state.country}
                                 containerStyle={{ height: 40 }}
                                 style={{ backgroundColor: '#363E58' }}
@@ -369,20 +555,20 @@ export default class FonGenelBilgi extends Component<Props, FonGenelBilgiState> 
                                     justifyContent: 'flex-start', backgroundColor: '#363E58'
                                 }}
                                 dropDownStyle={{ backgroundColor: '#363E58' }}
-                                onChangeItem={item => this.setState({
-                                    country: item.value
-                                })}
-                                placeholder={"Fon Seçiniz"}
+                                onChangeItem={item => this.dropDownItemSelect(item.value)}
+                                placeholder={"Fon Türü Seçiniz (SPK'dan alınan fon türleri)"}
                                 labelStyle={{
                                     fontSize: 14,
                                     textAlign: 'left',
                                     color: 'white'
                                 }}
+                                dropDownMaxHeight={500}
                             />
                         </View>
 
-                        <FlatList
+                        {!this.state.isloading ? <FlatList
                             style={{ backgroundColor: "#363E58" }}
+                            contentContainerStyle={{ paddingBottom: 195 }}
                             data={this.state.listingData.sort((a, b) => b.GunlukArtisYuzdesi - a.GunlukArtisYuzdesi)}
                             renderItem={({ item }) => (
                                 <View style={{ backgroundColor: "#363E58" }}>
@@ -410,9 +596,7 @@ export default class FonGenelBilgi extends Component<Props, FonGenelBilgiState> 
                                     </TouchableOpacity>
                                 </View>)}
                             keyExtractor={(item, index) => String(index)}
-                            onEndReached={this.onScrollHandler}
-                            onEndReachedThreshold={0.01}
-                        />
+                        /> : null}
                     </View>
                 </KeyboardAvoidingView>
             </View >

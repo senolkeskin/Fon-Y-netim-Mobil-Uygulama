@@ -179,9 +179,7 @@ export default class FonDetayBilgi extends Component<Props, FonGenelBilgiState> 
 
 
     fetchData = async (baslangicDate: Date, bitisDate: Date) => {
-        debugger
         const fundResponse = await axios.get("https://ws.spk.gov.tr/PortfolioValues/api/PortfoyDegerleri/" + this.props.route.params.fundItem.FonKodu + "/01/" + this.getFormattedDateForApi(baslangicDate) + "/" + this.getFormattedDateForApi(bitisDate));
-        debugger
         if (fundResponse.status == 200 && fundResponse.data != null && fundResponse.data.length > 0) {
             var funds: FonModel[] = fundResponse.data;
             var labelsView: string[] = [];
@@ -287,7 +285,6 @@ export default class FonDetayBilgi extends Component<Props, FonGenelBilgiState> 
     getDataBetweenDate(date: string, baslangicMi: boolean) {
 
         var convertToValidFormadForApi = this.convertToValidFormadForApi(date);
-        debugger;
         if (baslangicMi) {
             this.setState({
                 datePickerBaslangicDate: date,
@@ -430,23 +427,6 @@ export default class FonDetayBilgi extends Component<Props, FonGenelBilgiState> 
             datePickerBitisDate: datePickerBitisDate,
             datePickerBaslangicDate: datePickerBaslangicDate,
         }, () => this.fetchData(this.state.baslangicDate, this.state.bitisDate))
-    }
-
-    dataAnalysisView(fundItems: FonModel[]) {
-        // if (this.state.isVisibleLineChart) {
-
-        //     debugger;
-
-
-        //     return (
-        //         <View>
-        //             {analyzedDailyData.map(data => <View><Text>{data.Tarih.toISOString() + " " + data.GunlukArtisYuzdesi}</Text></View>)}
-        //         </View>
-        //     );
-
-
-
-        // }
     }
 
     render() {

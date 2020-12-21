@@ -6,7 +6,6 @@ const styles = StyleSheet.create({
         borderRadius: 3,
         borderColor:"white",
         backgroundColor: "#1C212F",
-        flex: 1,
         flexDirection:"row",
         justifyContent: 'flex-start',
         alignItems: 'center',
@@ -61,7 +60,7 @@ const styles = StyleSheet.create({
         textAlign:"left",
         color: "white",
         includeFontPadding: false,
-        fontSize: 11,
+        fontSize: 10,
         fontWeight: "bold",
       },
       input: {

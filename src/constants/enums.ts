@@ -19,12 +19,12 @@ export const FonTurleri = {
   KorumaAmacliFon: "Koruma Amaçlı Fon",
   AltinVeDigerKiymetliMadenlerFonu: "Altın ve Diğer Kıymetli Madenler Fonu",
   HisseSenediYogunFon: "Hisse Senedi Yoğun Fon",
-  BosFon: "",
+  BosFon: "Boş Fon",
   KiraSertifikasıFonu: "Kira Sertifikası Fonu",
   KarmaFon: "Karma Fon",
   GumusFonu: "Gümüş Fonu",
 }
 
 export const GunSayisi = {
-  onBesGun: 15,
+  onBesGun: 30,
 }
