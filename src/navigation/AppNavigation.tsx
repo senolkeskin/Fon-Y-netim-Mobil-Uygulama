@@ -9,11 +9,11 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 
 import FonGenelBilgi from "../pages/FonGenelBilgi"
 import FonDetayBilgi from "../pages/FonDetayBilgi"
-import Deneme from "../pages/deneme"
+import AnalizPage from "../pages/AnalizPage"
 
 
 const HomeStack = createStackNavigator();
-const DenemeStack = createStackNavigator();
+const AnalizStack = createStackNavigator();
 
 //STACKLER
 const HomeStackScreen = () => (
@@ -35,15 +35,15 @@ const HomeStackScreen = () => (
   </HomeStack.Navigator>
 );
 
-const DenemeStackScreen = () => (
-  <DenemeStack.Navigator>
-    <DenemeStack.Screen name="Deneme" component={Deneme} options={{
+const AnalizStackScreen = () => (
+  <AnalizStack.Navigator>
+    <AnalizStack.Screen name="Analiz" component={AnalizPage} options={{
       headerTitleStyle: { color: "white" },
       headerBackground: () => (
         <View style={{ backgroundColor: "#1C212F", flex: 1 }} />
       ),
     }} />
-  </DenemeStack.Navigator>
+  </AnalizStack.Navigator>
 );
 
 //TAB
@@ -55,12 +55,10 @@ const TabsScreen = () => (
         let iconName;
 
         if (route.name === 'Fon Genel') {
-          iconName = focused
-            ? 'list-outline'
-            : 'list';
+          iconName = 'list-sharp'
 
-        } else if (route.name === 'Settings') {
-          iconName = focused ? 'ios-list-box' : 'ios-list';
+        } else if (route.name === 'Analiz') {
+          iconName = 'analytics-sharp';
         }
 
         // You can return any component that you like here!
@@ -76,7 +74,7 @@ const TabsScreen = () => (
       labelStyle:{fontSize:12}
     }}>
     <Tabs.Screen name="Fon Genel" component={HomeStackScreen} />
-    <Tabs.Screen name="Deneme" component={DenemeStackScreen} />
+    <Tabs.Screen name="Analiz" component={AnalizStackScreen} />
   </Tabs.Navigator>
 );
 
@@ -85,6 +83,7 @@ const Drawer = createDrawerNavigator();
 const DrawerScreen = () => (
   <Drawer.Navigator initialRouteName="Fon Genel" drawerStyle={{ backgroundColor: "#202f39E6" }} drawerContentOptions={{ labelStyle: { color: "white", fontSize: 20 } }}>
     <Drawer.Screen name="Fonel Genel" component={TabsScreen} />
+    <Drawer.Screen name="Analiz" component={AnalizStackScreen} />
   </Drawer.Navigator>
 );
 

@@ -28,3 +28,31 @@ export const FonTurleri = {
 export const GunSayisi = {
   onBesGun: 30,
 }
+
+export const FonIcerikleri = {
+  DevletTahvili: "Devlet Tahvili",
+  BankaBonosu:"Banka Bonosu",
+  Diger: "Diğer",
+  DovizOdemeliBono:"Döviz Ödemeli Bono",
+  DovizOdemeliTahvil:"Döviz Ödemeli Tahvil",
+  Eurobond:"Eurobond",
+  FinansmanBonosu:"Finansman Bonosu",
+  FonKatilmaBelgesi: "Fon Katılma Belgesi",
+  GayrimenkulSertifikasi: "Gayrimenkul Sertifikası",
+  HazineBonosu: "Hazine Bonosu",
+  HisseSenedi: "Hisse Senedi",
+  KamuDisBorclanmaAraci: "Kamu Dış Borçlanma Aracı",
+  KamuKiraSertifikasi: "Kamu Kira Sertifikası",
+  KatilimHesabi: "Katılım Hesabı",
+  KiymetliMaden: "Kıymetli Maden",
+  OzelSektorKiraSertifikasi:"Özel Kira Sertifikası",
+  OzelSektorTahvili:"Özel Sektör Tahvili",
+  TPP:"TPP",
+  TersRepo: "Ters Repo",
+  TurevAraci: "Türev Aracı",
+  VadeliMevduat: "Vadeli Mevduat",
+  VarligaDayaliMenkulKiymet: "Varlığa Dayalı Gayrimenkul",
+  YabanciBorclanmaAraci: "Yabancı Borçlanma Aracı",
+  YabanciHisseSenedi: "Yabancı Hisse Senedi",
+  YabanciMenkulKiymet: "Yabancı Menkul Kıymet",
+}

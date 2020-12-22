@@ -17,7 +17,7 @@ import RNPickerSelect from 'react-native-picker-select';
 import { Input, CheckBox, SearchBar } from "react-native-elements";
 import { LineChart } from "react-native-chart-kit";
 import axios from "axios";
-import { FonTurleri, Gunler, GunSayisi } from "../constants/enums"
+import { FonIcerikleri, FonTurleri, Gunler, GunSayisi } from "../constants/enums"
 import { TouchableOpacity } from "react-native-gesture-handler";
 import DropDownPicker from "react-native-dropdown-picker";
 import AsyncStorage from "@react-native-community/async-storage"
@@ -96,6 +96,7 @@ interface FonGenelBilgiState {
     country?: any;
     isloading?: boolean;
     dropDownPickerItems: any;
+    dropDownPickerItemsForContains:any;
 }
 
 export default class FonGenelBilgi extends Component<Props, FonGenelBilgiState> {
@@ -128,6 +129,7 @@ export default class FonGenelBilgi extends Component<Props, FonGenelBilgiState> 
             listingData: [],
             isloading: true,
             dropDownPickerItems: [],
+            dropDownPickerItemsForContains:[],
         };
     }
 
@@ -288,11 +290,39 @@ export default class FonGenelBilgi extends Component<Props, FonGenelBilgiState> 
                 { label: FonTurleri.KarmaFon, value: FonTurleri.KarmaFon },
                 { label: FonTurleri.GumusFonu, value: FonTurleri.GumusFonu },]
 
+            var dropDownPickerItemsForContains = [
+                { label: "Tümü", value: "Tümü" },
+                { label: FonIcerikleri.DevletTahvili, value: FonIcerikleri.DevletTahvili },
+                { label: FonIcerikleri.BankaBonosu, value: FonIcerikleri.BankaBonosu},
+                { label: FonIcerikleri.Diger, value: FonIcerikleri.Diger},
+                { label: FonIcerikleri.DovizOdemeliBono, value: FonIcerikleri.DovizOdemeliBono},
+                { label: FonIcerikleri.DovizOdemeliTahvil, value: FonIcerikleri.DovizOdemeliTahvil},
+                { label: FonIcerikleri.Eurobond, value: FonIcerikleri.Eurobond },
+                { label: FonIcerikleri.FinansmanBonosu, value: FonIcerikleri.FinansmanBonosu },
+                { label: FonIcerikleri.FonKatilmaBelgesi, value: FonIcerikleri.FonKatilmaBelgesi },
+                { label: FonIcerikleri.GayrimenkulSertifikasi, value: FonIcerikleri.GayrimenkulSertifikasi },
+                { label: FonIcerikleri.HazineBonosu, value: FonIcerikleri.HazineBonosu },
+                { label: FonIcerikleri.HisseSenedi, value: FonIcerikleri.HisseSenedi },
+                { label: FonIcerikleri.KamuDisBorclanmaAraci, value: FonIcerikleri.KamuDisBorclanmaAraci },
+                { label: FonIcerikleri.KamuKiraSertifikasi, value: FonIcerikleri.KamuKiraSertifikasi },
+                { label: FonIcerikleri.OzelSektorKiraSertifikasi, value: FonIcerikleri.OzelSektorKiraSertifikasi },
+                { label: FonIcerikleri.KatilimHesabi, value: FonIcerikleri.KatilimHesabi },
+                { label: FonIcerikleri.KiymetliMaden, value: FonIcerikleri.KiymetliMaden },
+                { label: FonIcerikleri.OzelSektorTahvili, value: FonIcerikleri.OzelSektorTahvili },
+                { label: FonIcerikleri.TPP, value: FonIcerikleri.TPP },
+                { label: FonIcerikleri.TersRepo, value: FonIcerikleri.TersRepo },
+                { label: FonIcerikleri.TurevAraci, value: FonIcerikleri.TurevAraci },
+                { label: FonIcerikleri.VarligaDayaliMenkulKiymet, value: FonIcerikleri.VarligaDayaliMenkulKiymet },
+                { label: FonIcerikleri.YabanciBorclanmaAraci, value: FonIcerikleri.YabanciBorclanmaAraci },
+                { label: FonIcerikleri.YabanciHisseSenedi, value: FonIcerikleri.YabanciHisseSenedi },
+                { label: FonIcerikleri.YabanciMenkulKiymet, value: FonIcerikleri.YabanciMenkulKiymet },]
+                
+
             this.allFundTypeDistribution(KarmaVeDegiskenFonlarToday, KarmaVeDegiskenFonlarOneMonthAgo);
 
             this.setState({
-                fundItemToday: fundItemToday,
-                listingData: fundItemToday,
+                fundItemToday: fundItemToday.sort((a, b) => b.GunlukArtisYuzdesi - a.GunlukArtisYuzdesi),
+                listingData: fundItemToday.sort((a, b) => b.GunlukArtisYuzdesi - a.GunlukArtisYuzdesi),
                 DegiskenFon: DegiskenFon,
                 BorclanmaAraclariFonu: BorclanmaAraclariFonu,
                 HisseSenediFonu: HisseSenediFonu,
@@ -308,6 +338,7 @@ export default class FonGenelBilgi extends Component<Props, FonGenelBilgiState> 
                 KarmaFon: KarmaFon,
                 GumusFonu: GumusFonu,
                 dropDownPickerItems: dropDownPickerItems,
+                dropDownPickerItemsForContains:dropDownPickerItemsForContains,
             }, () => this.setState({ isloading: false }))
         }
     }
@@ -319,7 +350,7 @@ export default class FonGenelBilgi extends Component<Props, FonGenelBilgiState> 
         })
         if (!text || text === '') {
             this.setState({
-                listingData: this.state.fundItemToday
+                listingData: this.state.fundItemToday.sort((a, b) => b.GunlukArtisYuzdesi - a.GunlukArtisYuzdesi)
             })
         } else if (!Array.isArray(filteredName) && filteredName == null && filteredName) {
             // set no data flag to true so as to render flatlist conditionally
@@ -329,7 +360,7 @@ export default class FonGenelBilgi extends Component<Props, FonGenelBilgiState> 
         } else if (Array.isArray(filteredName)) {
             this.setState({
                 noData: false,
-                listingData: filteredName
+                listingData: filteredName.sort((a, b) => b.GunlukArtisYuzdesi - a.GunlukArtisYuzdesi)
             })
         }
     }
@@ -366,17 +397,96 @@ export default class FonGenelBilgi extends Component<Props, FonGenelBilgiState> 
     dropDownItemSelect(value: string) {
         var listData: FonModel[] = [];
         if (value == "Tüm Fonlar") {
-            listData = this.state.fundItemToday;
+            listData = this.state.fundItemToday.sort((a, b) => b.GunlukArtisYuzdesi - a.GunlukArtisYuzdesi);
         }
         else {
-            listData = this.state.fundItemToday.filter(x => x.FonTuru == value);
+            listData = this.state.fundItemToday.filter(x => x.FonTuru == value).sort((a, b) => b.GunlukArtisYuzdesi - a.GunlukArtisYuzdesi);
         }
         this.setState({
             listingData: listData,
         })
     }
 
-    allFundTypeDistribution = async(KarmaVeDegiskenFonlarToday: FonModel[], KarmaVeDegiskenFonlarOneMonthAgo: FonModel[]) => {
+    dropDownItemSelectForContains(value: string) {
+        var listData: FonModel[] = [];
+        if (value == "Tümü") {
+            listData = this.state.fundItemToday.sort((a, b) => b.GunlukArtisYuzdesi - a.GunlukArtisYuzdesi);
+        }
+        else if (value == FonIcerikleri.DevletTahvili) {
+            listData = this.state.fundItemToday.sort((a, b) => b.DevletTahvili - a.DevletTahvili);
+        }
+        else if (value == FonIcerikleri.BankaBonosu) {
+            listData = this.state.fundItemToday.sort((a, b) => b.BankaBonosu - a.BankaBonosu);
+        }
+        else if (value == FonIcerikleri.Diger) {
+            listData = this.state.fundItemToday.sort((a, b) => b.Diger - a.Diger);
+        }
+        else if (value == FonIcerikleri.DovizOdemeliBono) {
+            listData = this.state.fundItemToday.sort((a, b) => b.DovizOdemeliBono - a.DovizOdemeliBono);
+        }
+        else if (value == FonIcerikleri.Eurobond) {
+            listData = this.state.fundItemToday.sort((a, b) => b.Eurobond - a.Eurobond);
+        }
+        else if (value == FonIcerikleri.FinansmanBonosu) {
+            listData = this.state.fundItemToday.sort((a, b) => b.FinansmanBonosu - a.FinansmanBonosu);
+        }
+        else if (value == FonIcerikleri.FonKatilmaBelgesi) {
+            listData = this.state.fundItemToday.sort((a, b) => b.FonKatilmaBelgesi - a.FonKatilmaBelgesi);
+        }
+        else if (value == FonIcerikleri.GayrimenkulSertifikasi) {
+            listData = this.state.fundItemToday.sort((a, b) => b.GayrimenkulSertifikasi - a.GayrimenkulSertifikasi);
+        }
+        else if (value == FonIcerikleri.HazineBonosu) {
+            listData = this.state.fundItemToday.sort((a, b) => b.HazineBonosu - a.HazineBonosu);
+        }
+        else if (value == FonIcerikleri.HisseSenedi) {
+            listData = this.state.fundItemToday.sort((a, b) => b.HisseSenedi - a.HisseSenedi);
+        }
+        else if (value == FonIcerikleri.KamuDisBorclanmaAraci) {
+            listData = this.state.fundItemToday.sort((a, b) => b.KamuDisBorclanmaAraci - a.KamuDisBorclanmaAraci);
+        }
+        else if (value == FonIcerikleri.KamuKiraSertifikasi) {
+            listData = this.state.fundItemToday.sort((a, b) => b.KamuKiraSertifikasi - a.KamuKiraSertifikasi);
+        }
+        else if (value == FonIcerikleri.KiymetliMaden) {
+            listData = this.state.fundItemToday.sort((a, b) => b.KiymetliMaden - a.KiymetliMaden);
+        }
+        else if (value == FonIcerikleri.OzelSektorKiraSertifikasi) {
+            listData = this.state.fundItemToday.sort((a, b) => b.OzelSektorKiraSertifikasi - a.OzelSektorKiraSertifikasi);
+        }
+        else if (value == FonIcerikleri.OzelSektorTahvili) {
+            listData = this.state.fundItemToday.sort((a, b) => b.OzelSektorTahvili - a.OzelSektorTahvili);
+        }
+        else if (value == FonIcerikleri.TPP) {
+            listData = this.state.fundItemToday.sort((a, b) => b.TPP - a.TPP);
+        }
+        else if (value == FonIcerikleri.TersRepo) {
+            listData = this.state.fundItemToday.sort((a, b) => b.TersRepo - a.TersRepo);
+        }
+        else if (value == FonIcerikleri.TurevAraci) {
+            listData = this.state.fundItemToday.sort((a, b) => b.TurevAraci - a.TurevAraci);
+        }
+        else if (value == FonIcerikleri.VadeliMevduat) {
+            listData = this.state.fundItemToday.sort((a, b) => b.VadeliMevduat - a.VadeliMevduat);
+        }
+        else if (value == FonIcerikleri.VarligaDayaliMenkulKiymet) {
+            listData = this.state.fundItemToday.sort((a, b) => b.VarligaDayaliMenkulKiymet - a.VarligaDayaliMenkulKiymet);
+        }
+        else if (value == FonIcerikleri.YabanciBorclanmaAraci) {
+            listData = this.state.fundItemToday.sort((a, b) => b.YabanciBorclanmaAraci - a.YabanciBorclanmaAraci);
+        }
+        else if (value == FonIcerikleri.YabanciHisseSenedi) {
+            listData = this.state.fundItemToday.sort((a, b) => b.YabanciHisseSenedi - a.YabanciHisseSenedi);
+        }
+        else if (value == FonIcerikleri.YabanciMenkulKiymet) {
+            listData = this.state.fundItemToday.sort((a, b) => b.YabanciMenkulKiymet - a.YabanciMenkulKiymet);
+        }
+        this.setState({
+            listingData: listData,
+        })
+    }
+
+    allFundTypeDistribution = async (KarmaVeDegiskenFonlarToday: FonModel[], KarmaVeDegiskenFonlarOneMonthAgo: FonModel[]) => {
         var fonDetayListMonthlyStatistic: FonModel = {
             BirimPayDegeri: 0,
             DolasimdakiPaySayisi: 0,
@@ -515,13 +625,10 @@ export default class FonGenelBilgi extends Component<Props, FonGenelBilgiState> 
             arr.push(fonDetayListMonthlyStatistic)
             arr.push(fonDetayDistributionToday)
             const jsonValue = JSON.stringify(arr)
-            await AsyncStorage.setItem("fonModelStatistics",jsonValue);
-          } catch (error) {
+            await AsyncStorage.setItem("fonModelStatistics", jsonValue);
+        } catch (error) {
             console.log(error);
-            debugger;
-          }
-
-        debugger;
+        }
     }
 
     render() {
@@ -548,7 +655,6 @@ export default class FonGenelBilgi extends Component<Props, FonGenelBilgiState> 
                         <View>
                             <DropDownPicker
                                 items={this.state.dropDownPickerItems}
-                                defaultValue={this.state.country}
                                 containerStyle={{ height: 40 }}
                                 style={{ backgroundColor: '#363E58' }}
                                 itemStyle={{
@@ -566,10 +672,30 @@ export default class FonGenelBilgi extends Component<Props, FonGenelBilgiState> 
                             />
                         </View>
 
+                        <View>
+                            <DropDownPicker
+                                items={this.state.dropDownPickerItemsForContains}
+                                containerStyle={{ height: 40 }}
+                                style={{ backgroundColor: '#363E58' }}
+                                itemStyle={{
+                                    justifyContent: 'flex-start', backgroundColor: '#363E58'
+                                }}
+                                dropDownStyle={{ backgroundColor: '#363E58' }}
+                                onChangeItem={item => this.dropDownItemSelectForContains(item.value)}
+                                placeholder={"Fon İçeriği Seçiniz"}
+                                labelStyle={{
+                                    fontSize: 14,
+                                    textAlign: 'left',
+                                    color: 'white'
+                                }}
+                                dropDownMaxHeight={500}
+                            />
+                        </View>
+
                         {!this.state.isloading ? <FlatList
                             style={{ backgroundColor: "#363E58" }}
                             contentContainerStyle={{ paddingBottom: 195 }}
-                            data={this.state.listingData.sort((a, b) => b.GunlukArtisYuzdesi - a.GunlukArtisYuzdesi)}
+                            data={this.state.listingData}
                             renderItem={({ item }) => (
                                 <View style={{ backgroundColor: "#363E58" }}>
                                     <TouchableOpacity onPress={() => this.props.navigation.navigate("Fon Detay", { fundItem: item })}>
