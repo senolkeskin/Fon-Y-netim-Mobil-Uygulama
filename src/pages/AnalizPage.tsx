@@ -26,6 +26,8 @@ import { colors } from "../constants/colors";
 import { Container, Tab, TabHeading, Tabs } from "native-base";
 import Svg from "react-native-svg"
 
+import { addFunInfo } from "../firebaseRealtimeDatabase/firebaseRealtimeDatabase"
+
 const screenWidth = Dimensions.get("window").width;
 
 
@@ -226,7 +228,7 @@ export default class Deneme extends Component<Props, FonGenelBilgiState> {
         )
     }
 
-    degiskenVeKarmaFonPieChart(){
+    degiskenVeKarmaFonPieChart() {
         return (
             <View style={{ flexDirection: "column" }}>
                 <View style={{ flex: 5 }}>
@@ -246,10 +248,18 @@ export default class Deneme extends Component<Props, FonGenelBilgiState> {
                     </Svg>
                 </View>
                 <View style={{ flex: 4 }}>
-                    {this.state.fonDetayDistributionToday.sort((a, b) => b.y - a.y).map(r => <View style={{ margin: 5, flexDirection: "row", alignItems:"center", justifyContent:"center" }}><View style={{ flex: 0.2, alignItems:"flex-end", justifyContent:"flex-end" }}><Icon name="square" size={20} color={r.l} /></View><View style={{ flex: 1 , alignItems:"flex-start", justifyContent:"flex-start"}}><Text style={{ color: colors.White, fontSize: 12 }}>{r.x + ": %" + r.y.toFixed(2)}</Text></View></View>)}
+                    {this.state.fonDetayDistributionToday.sort((a, b) => b.y - a.y).map(r => <View style={{ margin: 5, flexDirection: "row", alignItems: "center", justifyContent: "center" }}><View style={{ flex: 0.2, alignItems: "flex-end", justifyContent: "flex-end" }}><Icon name="square" size={20} color={r.l} /></View><View style={{ flex: 1, alignItems: "flex-start", justifyContent: "flex-start" }}><Text style={{ color: colors.White, fontSize: 12 }}>{r.x + ": %" + r.y.toFixed(2)}</Text></View></View>)}
                 </View>
             </View>
         )
+    }
+
+    denemeSave() {
+        addFunInfo(null, "33", 1.32323, "senol", "1", new Date(), new Date(), true).then(result => {
+            console.log(result);
+        }).catch(err => {
+            console.log(err);
+        })
     }
 
     render() {
@@ -271,6 +281,14 @@ export default class Deneme extends Component<Props, FonGenelBilgiState> {
                             <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"}>
                                 {!this.state.isLoading ?
                                     <ScrollView style={{ backgroundColor: colors.backgroundColor, height: "100%" }} >
+
+
+                                        <TouchableOpacity onPress={() => this.denemeSave()}>
+                                            <Text style={{ fontSize: 15, textAlign: "center", color: "white" }}>{"Değişken ve Karma Fonların Günlük İçerik Dağılımı"}</Text>
+                                        </TouchableOpacity>
+
+
+
                                         <View style={{ alignItems: "center", justifyContent: "center", padding: 10, borderColor: "white", borderWidth: 1 }}>
                                             <Text style={{ fontSize: 15, textAlign: "center", color: "white" }}>{"Değişken ve Karma Fonların Günlük İçerik Dağılımı"}</Text>
                                         </View>
