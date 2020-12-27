@@ -78,7 +78,53 @@ const styles = StyleSheet.create({
         borderColor: 'gray',
         borderRadius: 4,
         color: 'black',
-    
+      },
+      buttonContainer:{
+        backgroundColor:'#D2D5F1',
+        borderRadius: 5,
+        marginHorizontal: 60,
+        paddingVertical: 15,
+        marginTop:30,
+        marginBottom:10,
+      },
+      buttonText:{
+        textAlign: "center",
+        color: "#1928A9",
+        fontWeight: "900",
+      },
+      headStyle: {
+        paddingVertical: 30,
+        justifyContent: "center",
+        alignItems: "center",
+      },
+      logo:{
+        width:100,
+        height:100,
+        borderRadius:50,
+        backgroundColor:'black',
+      },
+      headText: {
+        fontSize: 30,
+        fontWeight: "700",
+        color: "white",
+      },
+      inputContainer: {
+        justifyContent: "space-between",
+        padding: 20,
+        flex:4,
+      },
+      errorMessageText: {
+        textAlign: "center",
+        color: "white",
+        fontWeight: "900",
+        fontSize:15,
+      },
+      errorText: {
+        marginLeft: 10,
+        marginBottom: 10,
+        textAlign: "justify",
+        color: "#EA0808",
+        fontSize: 12,
       },
 });
 

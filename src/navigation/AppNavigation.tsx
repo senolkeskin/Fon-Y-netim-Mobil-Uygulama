@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useContext, useEffect, useState } from "react";
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs'
@@ -6,46 +6,97 @@ import { createDrawerNavigator } from '@react-navigation/drawer'
 import { View } from "react-native";
 import Ionicons from 'react-native-vector-icons/Ionicons';
 
+import auth from "@react-native-firebase/auth"
+import { AuthContext, AuthProvider } from "./Auth"
 
 import FonGenelBilgi from "../pages/FonGenelBilgi"
 import FonDetayBilgi from "../pages/FonDetayBilgi"
 import AnalizPage from "../pages/AnalizPage"
+import LoginPage from "../pages/LoginPage"
+import SignUp from "../pages/SignUp"
+import { TouchableOpacity } from "react-native-gesture-handler";
+import { colors } from "../constants/colors";
 
 
 const HomeStack = createStackNavigator();
 const AnalizStack = createStackNavigator();
+const AuthStack = createStackNavigator();
+
+
 
 //STACKLER
-const HomeStackScreen = () => (
-  <HomeStack.Navigator>
-    <HomeStack.Screen name="Fon Genel" component={FonGenelBilgi} options={{
-      headerTitleStyle: { color: "white" },
-      headerTintColor:"white",
+const AuthStackScreen = () => (
+  <AuthStack.Navigator>
+    <AuthStack.Screen name="Giriş Yap" component={LoginPage} options={{
+      headerTitleStyle: { color: colors.backgroundColor },
+      headerTintColor: colors.backgroundColor,
       headerBackground: () => (
-        <View style={{ backgroundColor: "#1C212F", flex: 1,  }} />
+        <View style={{ backgroundColor: colors.backgroundColor, flex: 1, }} />
       ),
     }} />
-    <HomeStack.Screen name="Fon Detay" component={FonDetayBilgi} options={{
-      headerTintColor:"white",
-      headerTitleStyle: { color: "white" },
+    <AuthStack.Screen name="Kayıt Ol" component={SignUp} options={{
+      headerTitleStyle: { color: colors.backgroundColor },
+      headerTintColor: "white",
       headerBackground: () => (
-        <View style={{ backgroundColor: "#1C212F", flex: 1 }} />
+        <View style={{ backgroundColor: colors.backgroundColor, flex: 1, }} />
       ),
     }} />
-  </HomeStack.Navigator>
+  </AuthStack.Navigator>
 );
 
-const AnalizStackScreen = () => (
-  <AnalizStack.Navigator>
-    <AnalizStack.Screen name="Analiz" component={AnalizPage} options={{
-      headerTitleStyle: { color: "white" },
-      headerBackground: () => (
-        <View style={{ backgroundColor: "#1C212F", flex: 1 }} />
-      ),
-    }} />
-  </AnalizStack.Navigator>
-);
 
+
+const HomeStackScreen = () => {
+  const { logout, user } = useContext(AuthContext);
+  return (
+    <HomeStack.Navigator>
+      <HomeStack.Screen name="Fon Genel" component={FonGenelBilgi} options={{
+        headerTitleStyle: { color: "white" },
+        headerTintColor: "white",
+        headerBackground: () => (
+          <View style={{ backgroundColor: "#1C212F", flex: 1, }} />
+        ),
+        headerRight: () => (
+          <TouchableOpacity style={{ marginRight: 10 }} onPress={() => logout()}>
+            <Ionicons name={"log-out-outline"} size={25} color={"white"} />
+          </TouchableOpacity>
+        ),
+      }} />
+      <HomeStack.Screen name="Fon Detay" component={FonDetayBilgi} options={{
+        headerTintColor: "white",
+        headerTitleStyle: { color: "white" },
+        headerBackground: () => (
+          <View style={{ backgroundColor: "#1C212F", flex: 1 }} />
+        ),
+        headerRight: () => (
+          <TouchableOpacity style={{ marginRight: 10 }} onPress={() => logout()}>
+            <Ionicons name={"log-out-outline"} size={25} color={"white"} />
+          </TouchableOpacity>
+        )
+      }} />
+    </HomeStack.Navigator>
+  );
+
+}
+const AnalizStackScreen = () => {
+  const { logout } = useContext(AuthContext);
+  return (
+    <AnalizStack.Navigator>
+      <AnalizStack.Screen name="Analiz" component={AnalizPage} options={{
+        headerTitleStyle: { color: "white" },
+        headerBackground: () => (
+          <View style={{ backgroundColor: "#1C212F", flex: 1 }} />
+        ),
+        headerRight: () => (
+          <TouchableOpacity style={{ marginRight: 10 }} onPress={() => logout()}>
+            <Ionicons name={"log-out-outline"} size={25} color={"white"} />
+          </TouchableOpacity>
+        )
+      }} />
+    </AnalizStack.Navigator>
+  );
+
+}
 //TAB
 const Tabs = createBottomTabNavigator();
 const TabsScreen = () => (
@@ -71,7 +122,7 @@ const TabsScreen = () => (
       inactiveTintColor: 'gray',
       activeBackgroundColor: '#202f39',
       inactiveBackgroundColor: '#202f39',
-      labelStyle:{fontSize:12}
+      labelStyle: { fontSize: 12 }
     }}>
     <Tabs.Screen name="Fon Genel" component={HomeStackScreen} />
     <Tabs.Screen name="Analiz" component={AnalizStackScreen} />
@@ -102,9 +153,23 @@ const RootStackScreen = () => (
 );
 
 export default function AppContainer() {
+  const { user, setUser } = useContext(AuthContext);
+  const [initializing, setInitializing] = useState(true);
+
+  const onAuthStateChanged = (user) => {
+    setUser(user);
+    if (initializing) setInitializing(false);
+  }
+
+  useEffect(() => {
+    const subscriber = auth().onAuthStateChanged(onAuthStateChanged);
+    return subscriber; // unsubscribe on unmount
+  }, []);
+
+  if (initializing) return null;
   return (
     <NavigationContainer>
-      <RootStackScreen />
+      {user ? <RootStackScreen /> : <AuthStackScreen />}
     </NavigationContainer>
   );
 }

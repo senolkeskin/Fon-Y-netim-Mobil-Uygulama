@@ -1,5 +1,6 @@
 import database from '@react-native-firebase/database';
 import firebase from '@react-native-firebase/app';
+import { useRef } from 'react';
 
 var firebaseConfig = {
     apiKey: "AIzaSyDZZTH3cB17E3weha4ufH1dzsmGDHYzyFQ",
@@ -12,7 +13,8 @@ var firebaseConfig = {
     measurementId: "G-8H0MF5CLEX"
 };
 
-debugger;
+const db = "https://fon-yonetimi-default-rtdb.europe-west1.firebasedatabase.app";
+
 if (!firebase.apps.length) {
     firebase.initializeApp(firebaseConfig);
 }
@@ -24,7 +26,6 @@ export const addFunInfo = (id: string, fundName: string, fundPurchaseValue: numb
             key = id;
         }
         else {
-            debugger;
             key = database()
                 .ref()
                 .push()
@@ -41,7 +42,7 @@ export const addFunInfo = (id: string, fundName: string, fundPurchaseValue: numb
             isActive: isActive,
             portfoyId: portfoyId
         };
-        firebase.app().database("https://fon-yonetimi-default-rtdb.europe-west1.firebasedatabase.app").ref("fundValues/" + key)
+        firebase.app().database(db).ref("fundValues/" + key)
             .update(dataToSave).then((snapshot) => {
                 resolve(snapshot);
             }).catch(err => {
@@ -49,3 +50,28 @@ export const addFunInfo = (id: string, fundName: string, fundPurchaseValue: numb
             });
     });
 }
+
+export const deleteAllFundsInfo = (portfoyId: string) => {
+    firebase.app().database(db)
+        .ref()
+        .remove()
+        .then(() => {
+            console.log("basarılı");
+        })
+        .catch(error => {
+            console.log(error);
+        })
+}
+
+export const fetchDataFirebase = () => {
+    const fundRef = firebase.app()
+        .database(db).
+        ref("/fundValues")
+        .once('value')
+        .then(snapshot => {
+            //datalar burada
+            console.log('User data: ', snapshot.val());
+        });
+}
+
+

@@ -26,7 +26,7 @@ import { colors } from "../constants/colors";
 import { Container, Tab, TabHeading, Tabs } from "native-base";
 import Svg from "react-native-svg"
 
-import { addFunInfo } from "../firebaseRealtimeDatabase/firebaseRealtimeDatabase"
+import { addFunInfo, deleteAllFundsInfo, fetchDataFirebase } from "../firebaseRealtimeDatabase/firebaseRealtimeDatabase"
 
 const screenWidth = Dimensions.get("window").width;
 
@@ -255,11 +255,12 @@ export default class Deneme extends Component<Props, FonGenelBilgiState> {
     }
 
     denemeSave() {
-        addFunInfo(null, "33", 1.32323, "senol", "1", new Date(), new Date(), true).then(result => {
-            console.log(result);
-        }).catch(err => {
-            console.log(err);
-        })
+        // addFunInfo(null, "33", 1.32323, "senol", "1", new Date(), new Date(), true).then(result => {
+        //     console.log(result);
+        // }).catch(err => {
+        //     console.log(err);
+        // })
+        fetchDataFirebase();
     }
 
     render() {
