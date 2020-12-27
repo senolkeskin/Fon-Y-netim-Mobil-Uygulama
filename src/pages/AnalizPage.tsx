@@ -199,7 +199,7 @@ export default class Deneme extends Component<Props, FonGenelBilgiState> {
                                     fill: colors.White,
                                     textAlign: "center",
                                     alignItems: "center",
-                                    textAnchor: ({ datum }) => Math.abs(datum.y) > 125 ? "start" : "end"
+                                    textAnchor: ({ datum }) => Math.abs(datum.y) > 140 ? "start" : "end"
                                 },
 
                             }}
@@ -254,15 +254,6 @@ export default class Deneme extends Component<Props, FonGenelBilgiState> {
         )
     }
 
-    denemeSave() {
-        // addFunInfo(null, "33", 1.32323, "senol", "1", new Date(), new Date(), true).then(result => {
-        //     console.log(result);
-        // }).catch(err => {
-        //     console.log(err);
-        // })
-        fetchDataFirebase();
-    }
-
     render() {
         return (
             <View style={{ backgroundColor: colors.backgroundColor, flex: 1 }}>
@@ -282,14 +273,6 @@ export default class Deneme extends Component<Props, FonGenelBilgiState> {
                             <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"}>
                                 {!this.state.isLoading ?
                                     <ScrollView style={{ backgroundColor: colors.backgroundColor, height: "100%" }} >
-
-
-                                        <TouchableOpacity onPress={() => this.denemeSave()}>
-                                            <Text style={{ fontSize: 15, textAlign: "center", color: "white" }}>{"Değişken ve Karma Fonların Günlük İçerik Dağılımı"}</Text>
-                                        </TouchableOpacity>
-
-
-
                                         <View style={{ alignItems: "center", justifyContent: "center", padding: 10, borderColor: "white", borderWidth: 1 }}>
                                             <Text style={{ fontSize: 15, textAlign: "center", color: "white" }}>{"Değişken ve Karma Fonların Günlük İçerik Dağılımı"}</Text>
                                         </View>

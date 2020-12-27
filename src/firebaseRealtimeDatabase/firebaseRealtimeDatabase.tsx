@@ -1,6 +1,7 @@
 import database from '@react-native-firebase/database';
 import firebase from '@react-native-firebase/app';
 import { useRef } from 'react';
+import { Alert } from 'react-native';
 
 var firebaseConfig = {
     apiKey: "AIzaSyDZZTH3cB17E3weha4ufH1dzsmGDHYzyFQ",
@@ -19,7 +20,8 @@ if (!firebase.apps.length) {
     firebase.initializeApp(firebaseConfig);
 }
 
-export const addFunInfo = (id: string, fundName: string, fundPurchaseValue: number, userId: string, portfoyId: string, createdDate: Date, updatedDate: Date, isActive: Boolean) => {
+export const addFunInfo = (id: string, fundName: string, fundPurchaseValue: number, fundCount: number, userId: string, portfoyId: string, createdDate: Date, updatedDate: Date, isActive: Boolean) => {
+    debugger;
     return new Promise(function (resolve, reject) {
         let key: string;
         if (id != null) {
@@ -31,47 +33,154 @@ export const addFunInfo = (id: string, fundName: string, fundPurchaseValue: numb
                 .push()
                 .key;
         }
-
         let dataToSave = {
-            id: key,
+            fundId: key + "-FUND",
             fundName: fundName,
             fundPurchaseValue: fundPurchaseValue,
+            fundCount: fundCount,
             userId: userId,
             createdDate: createdDate,
             updatedDate: updatedDate,
             isActive: isActive,
-            portfoyId: portfoyId
+            portfoyId: portfoyId,
         };
-        firebase.app().database(db).ref("fundValues/" + key)
-            .update(dataToSave).then((snapshot) => {
+        firebase.app()
+            .database(db)
+            .ref("fundValues/" + userId + "/" + portfoyId + "/" + key + "-FUND")
+            .update(dataToSave)
+            .then((snapshot) => {
                 resolve(snapshot);
-            }).catch(err => {
-                reject(err);
+            })
+            .catch(error => {
+                var errorCode = error.code;
+                var errorMessage = error.message;
+                Alert.alert(
+                    //title
+                    '',
+                    //body
+                    String(error.message),
+                    [
+                        { text: "Tamam" },
+                    ],
+                    { cancelable: true }
+                );
+                reject(error);
             });
     });
 }
 
-export const deleteAllFundsInfo = (portfoyId: string) => {
+export const addPortfoy = (userId: string, portfoyId: string, portfoyName: string, createdDate: Date, updatedDate: Date, isActive: Boolean) => {
+    return new Promise(function (resolve, reject) {
+        let key: string;
+        if (portfoyId != null) {
+            key = portfoyId;
+        }
+        else {
+            key = database()
+                .ref()
+                .push()
+                .key;
+        }
+        let dataToSave = {
+            portfoyId: key + "-PRTFY",
+            portfoyName: portfoyName,
+            createdDate: createdDate,
+            updatedDate: updatedDate,
+            isActive: isActive,
+        };
+        firebase.app()
+            .database(db)
+            .ref("fundValues/" + userId + "/" + key + "-PRTFY")
+            .update(dataToSave)
+            .then((snapshot) => {
+                Alert.alert(
+                    //title
+                    '',
+                    //body
+                    String("Portföy Oluşturuldu."),
+                    [
+                        { text: "Tamam" },
+                    ],
+                    { cancelable: true }
+                );
+                resolve(snapshot);
+            })
+            .catch(error => {
+                var errorCode = error.code;
+                var errorMessage = error.message;
+                Alert.alert(
+                    //title
+                    '',
+                    //body
+                    String(error.message),
+                    [
+                        { text: "Tamam" },
+                    ],
+                    { cancelable: true }
+                );
+                reject(error);
+            });
+    });
+}
+
+export const deleteAllPortfoyFundsInfo = (userId: string, portfoyId: string) => {
     firebase.app().database(db)
-        .ref()
+        .ref("fundValues/" + userId + "/" + portfoyId + "-PRTFY")
         .remove()
         .then(() => {
             console.log("basarılı");
         })
         .catch(error => {
-            console.log(error);
-        })
+            var errorCode = error.code;
+            var errorMessage = error.message;
+            Alert.alert(
+                //title
+                '',
+                //body
+                String(error.message),
+                [
+                    { text: "Tamam" },
+                ],
+                { cancelable: true }
+            );
+        });
 }
 
-export const fetchDataFirebase = () => {
-    const fundRef = firebase.app()
-        .database(db).
-        ref("/fundValues")
-        .once('value')
-        .then(snapshot => {
-            //datalar burada
-            console.log('User data: ', snapshot.val());
+export const deleteFundInfo = (userId: string, portfoyId: string, fundId: string) => {
+    firebase.app().database(db)
+        .ref("fundValues/" + userId + "/" + portfoyId + "/" + fundId + "-FUND")
+        .remove()
+        .then(() => {
+            console.log("basarılı");
+        })
+        .catch(error => {
+            var errorCode = error.code;
+            var errorMessage = error.message;
+            Alert.alert(
+                //title
+                '',
+                //body
+                String(error.message),
+                [
+                    { text: "Tamam" },
+                ],
+                { cancelable: true }
+            );
         });
+}
+
+export const fetchPortfoyDataFirebase = (userId: string) => {
+    return firebase.app()
+        .database(db).
+        ref("/fundValues/" + userId)
+        .once('value')
+}
+
+export const fetchPortfoyFundsDataFirebase = (userId: string, portfoyId: string) => {
+    return firebase.app()
+        .database(db).
+        ref("/fundValues/" + userId + "/" + portfoyId)
+        .once('value')
 }
 
 

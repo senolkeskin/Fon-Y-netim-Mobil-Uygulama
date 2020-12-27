@@ -16,12 +16,13 @@ import LoginPage from "../pages/LoginPage"
 import SignUp from "../pages/SignUp"
 import { TouchableOpacity } from "react-native-gesture-handler";
 import { colors } from "../constants/colors";
+import PortfoyPage from "../pages/PortfoyPage"
 
 
 const HomeStack = createStackNavigator();
 const AnalizStack = createStackNavigator();
 const AuthStack = createStackNavigator();
-
+const PortfoyStack = createStackNavigator();
 
 
 //STACKLER
@@ -97,6 +98,25 @@ const AnalizStackScreen = () => {
   );
 
 }
+
+const PortfoyStackScreen = () =>{
+  const { logout } = useContext(AuthContext);
+  return (
+    <PortfoyStack.Navigator>
+      <PortfoyStack.Screen name="Portföy" component={PortfoyPage} options={{
+        headerTitleStyle: { color: "white" },
+        headerBackground: () => (
+          <View style={{ backgroundColor: "#1C212F", flex: 1 }} />
+        ),
+        headerRight: () => (
+          <TouchableOpacity style={{ marginRight: 10 }} onPress={() => logout()}>
+            <Ionicons name={"log-out-outline"} size={25} color={"white"} />
+          </TouchableOpacity>
+        )
+      }} />
+    </PortfoyStack.Navigator>
+  );
+}
 //TAB
 const Tabs = createBottomTabNavigator();
 const TabsScreen = () => (
@@ -111,11 +131,13 @@ const TabsScreen = () => (
         } else if (route.name === 'Analiz') {
           iconName = 'analytics-sharp';
         }
+        else if (route.name === 'Porföy') {
+          iconName = 'pie-chart-sharp';
+        }
 
         // You can return any component that you like here!
         return <Ionicons name={iconName} size={size} color={color} />;
       },
-
     })}
     tabBarOptions={{
       activeTintColor: 'tomato',
@@ -126,6 +148,7 @@ const TabsScreen = () => (
     }}>
     <Tabs.Screen name="Fon Genel" component={HomeStackScreen} />
     <Tabs.Screen name="Analiz" component={AnalizStackScreen} />
+    <Tabs.Screen name="Porföy" component={PortfoyStackScreen} />
   </Tabs.Navigator>
 );
 

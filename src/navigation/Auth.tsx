@@ -2,6 +2,7 @@ import React, { createContext, useState } from 'react';
 import auth from '@react-native-firebase/auth';
 import { GoogleSignin } from '@react-native-community/google-signin';
 import { Alert } from 'react-native';
+import AsyncStorage from "@react-native-community/async-storage"
 
 export const AuthContext = createContext({} as any);
 
@@ -16,8 +17,14 @@ export const AuthProvider = ({ children }) => {
         login: async (email: string, password: string) => {
           try {
             await auth().signInWithEmailAndPassword(email, password)
-              .then(result => {
+              .then(async result => {
                 if (result.user != undefined) {
+                  try {
+                    const jsonValue = JSON.stringify(result.user)
+                    await AsyncStorage.setItem("user", jsonValue);
+                  } catch (error) {
+                    console.log(error);
+                  }
                   Alert.alert(
                     //title
                     'Giriş Başarılı',

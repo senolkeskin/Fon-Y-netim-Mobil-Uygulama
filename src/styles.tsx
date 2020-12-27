@@ -126,6 +126,15 @@ const styles = StyleSheet.create({
         color: "#EA0808",
         fontSize: 12,
       },
+      inputPortfoy: {
+        elevation: 2,
+        backgroundColor: '#fff',
+        color: 'black',
+        paddingTop: 0,
+        height: 50,
+        marginTop: 10,
+        flex:1
+      },
 });
 
 export default styles;
