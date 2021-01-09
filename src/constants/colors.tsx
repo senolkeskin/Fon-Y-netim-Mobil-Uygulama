@@ -33,5 +33,6 @@ export const colors = {
   YabanciHisseSenedi: "#616A6B",
   YabanciMenkulKiymet: "#52BE80",
   White: "#FFFFFF",
-  backgroundColor: "#363E58"
+  backgroundColor: "#363E58",
+  greenAdd: "#145A32",
 };

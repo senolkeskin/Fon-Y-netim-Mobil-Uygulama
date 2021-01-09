@@ -251,7 +251,7 @@ export default class FonDetayBilgi extends Component<Props, FonGenelBilgiState> 
                     analyzedDailyData.push(item)
                 }
                 else {
-                    item.GunlukArtisYuzdesi = ((item.BirimPayDegeri - funds[iterator - 1].BirimPayDegeri) * 100) / item.BirimPayDegeri;
+                    item.GunlukArtisYuzdesi = ((item.BirimPayDegeri - funds[iterator - 1].BirimPayDegeri) * 100) / funds[iterator - 1].BirimPayDegeri;
                     item.ArtisMiktari = (item.BirimPayDegeri - funds[iterator - 1].BirimPayDegeri);
                     analyzedDailyData.push(item);
                 }
@@ -262,7 +262,7 @@ export default class FonDetayBilgi extends Component<Props, FonGenelBilgiState> 
             if (funds.length > 0) {
                 var belirtilenAraliktakiBaslangicFiyat: number = funds[0].BirimPayDegeri;
                 var belirtilenAraliktakiSonFiyat: number = funds[funds.length - 1].BirimPayDegeri;
-                var belirtilenAraliktakiArtisYuzdesi: number = ((funds[funds.length - 1].BirimPayDegeri - funds[0].BirimPayDegeri) * 100) / funds[funds.length - 1].BirimPayDegeri;
+                var belirtilenAraliktakiArtisYuzdesi: number = ((funds[funds.length - 1].BirimPayDegeri - funds[0].BirimPayDegeri) * 100) / funds[0].BirimPayDegeri;
                 var belirtilenAraliktakiArtisMiktari: number = (funds[funds.length - 1].BirimPayDegeri - funds[0].BirimPayDegeri);
 
             }

@@ -21,7 +21,6 @@ if (!firebase.apps.length) {
 }
 
 export const addFunInfo = (id: string, fundName: string, fundPurchaseValue: number, fundCount: number, userId: string, portfoyId: string, createdDate: Date, updatedDate: Date, isActive: Boolean) => {
-    debugger;
     return new Promise(function (resolve, reject) {
         let key: string;
         if (id != null) {

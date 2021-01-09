@@ -10,8 +10,6 @@ import {
     ScrollView,
 } from "react-native";
 import { NavigationScreenProp, NavigationState, } from "react-navigation";
-import { Formik } from "formik";
-import * as Yup from "yup";
 import styles from "../styles";
 import Icon from "react-native-vector-icons/Ionicons";
 import RNPickerSelect from 'react-native-picker-select';
@@ -75,6 +73,8 @@ interface FonModel {
     YabanciMenkulKiymet: number;
     YatirimciSayisi: number;
     GunlukArtisYuzdesi?: number;
+    AlinanFonlar?: FirebaseFonModel[];
+    ortalamaMaliyet?: number;
 }
 
 interface Fund {
@@ -93,24 +93,28 @@ interface FirebaseFonModel {
     updatedDate: Date,
     userId: string,
     fundCount: number,
+    dateView: string,
+}
+
+interface FirebasePortfoyModel {
+    createdDate: Date,
+    portfoyName: string,
+    portfoyId: string,
+    isActive: boolean,
+    updatedDate: Date,
 }
 
 interface FonGenelBilgiState {
     isLoading: boolean,
     userInfo: any;
-    portfoyler: any[];
+    portfoyler: FirebasePortfoyModel[];
     isAddPortfoy: boolean;
     portfoyName: string;
     defaultDropDownPickerItem: any;
     firebaseFonlar: FirebaseFonModel[];
-    funds: Fund[],
-    listingData: Fund[],
-    isAddFund: boolean,
-    selectedFund: FonModel;
-    isSelectedFund: boolean,
-    fonKodu: string,
-    fonDegeri: string,
-    fonAdet: string,
+    portfoylerDropDownPicker: any[],
+    selectedPortfoy: FirebasePortfoyModel,
+    fundItemToday: FonModel[],
 }
 
 export default class Deneme extends Component<Props, FonGenelBilgiState> {
@@ -122,33 +126,21 @@ export default class Deneme extends Component<Props, FonGenelBilgiState> {
     constructor(props: Props) {
         super(props);
         this.state = {
-            isLoading: false,
+            isLoading: true,
             userInfo: {},
             portfoyler: [],
             isAddPortfoy: false,
             portfoyName: null,
             defaultDropDownPickerItem: null,
             firebaseFonlar: [],
-            funds: [],
-            listingData: [],
-            isAddFund: false,
-            selectedFund: null,
-            isSelectedFund: false,
-            fonKodu: null,
-            fonDegeri: null,
-            fonAdet: null,
+            portfoylerDropDownPicker: [],
+            selectedPortfoy: null,
+            fundItemToday: [],
         };
     }
 
 
     componentDidMount = async () => {
-        const fundResponse = await axios.get("https://ws.spk.gov.tr/PortfolioValues/api/Funds/1");
-        if (fundResponse.status == 200 && fundResponse.data != null && fundResponse.data.length > 0) {
-            var funds: Fund[] = fundResponse.data;
-            this.setState({
-                funds: funds,
-            })
-        }
         try {
             const userInfo = await AsyncStorage.getItem('user');
             if (userInfo != undefined) {
@@ -157,28 +149,43 @@ export default class Deneme extends Component<Props, FonGenelBilgiState> {
                     userInfo: user,
                 })
                 fetchPortfoyDataFirebase(user.uid).then(result => {
-                    var portfoyler: any[] = []
+                    var portfoyler: FirebasePortfoyModel[] = [];
+                    var portfoylerDropDownPicker: any[] = [];
                     result.forEach(element => {
-                        portfoyler.push({ value: element._snapshot.key, label: element._snapshot.value.portfoyName });
+                        var portfoy: FirebasePortfoyModel = {
+                            portfoyName: element._snapshot.value.portfoyName,
+                            portfoyId: element._snapshot.value.portfoyId,
+                            isActive: element._snapshot.value.isActive,
+                            createdDate: element._snapshot.value.createdDate,
+                            updatedDate: element._snapshot.value.updatedDate,
+
+                        };
+                        portfoylerDropDownPicker.push({ value: element._snapshot.value.portfoyId, label: element._snapshot.value.portfoyName });
+                        portfoyler.push(portfoy);
                     })
                     this.setState({
                         portfoyler: portfoyler,
-                        defaultDropDownPickerItem: portfoyler[portfoyler.length - 1].value,
+                        portfoylerDropDownPicker: portfoylerDropDownPicker,
+                        defaultDropDownPickerItem: portfoyler[portfoyler.length - 1].portfoyId,
+                        selectedPortfoy: portfoyler[portfoyler.length - 1],
+                        isLoading: false,
                     })
 
 
-                    fetchPortfoyFundsDataFirebase(this.state.userInfo.uid, portfoyler[portfoyler.length - 1].value).then(result => {
+                    fetchPortfoyFundsDataFirebase(this.state.userInfo.uid, portfoyler[portfoyler.length - 1].portfoyId).then(result => {
                         var firebaseFonlar: FirebaseFonModel[] = []
                         result.forEach(element => {
                             firebaseFonlar.push(element._snapshot.value);
                         })
-
                         //sondan beş eleman fon değil portföyün genel bilgileri
                         firebaseFonlar.pop();
                         firebaseFonlar.pop();
                         firebaseFonlar.pop();
                         firebaseFonlar.pop();
                         firebaseFonlar.pop();
+
+                        this.fetchFunds(firebaseFonlar);
+
                         this.setState({
                             firebaseFonlar: firebaseFonlar,
                         })
@@ -193,31 +200,193 @@ export default class Deneme extends Component<Props, FonGenelBilgiState> {
         }
     }
 
-    addFund() {
-        if(this.state.fonKodu != "" || this.state.fonKodu != null || this.state.fonAdet != "" || this.state.fonAdet != null || this.state.fonDegeri != "" || this.state.fonDegeri != null)
-        addFunInfo(null, this.state.fonKodu, Number(this.state.fonDegeri), Number(this.state.fonAdet), this.state.userInfo.uid, this.state.defaultDropDownPickerItem, new Date(), new Date(), true);
+
+    fetchFunds = async (firebaseFonlar: FirebaseFonModel[]) => {
+        var apiText = "";
+        firebaseFonlar.forEach(item => {
+            if (!apiText.includes(item.fundName)) {
+                apiText += item.fundName + ",";
+            }
+        })
+        if (apiText != "" && apiText != null && apiText != undefined) {
+
+            var bitisDate = new Date();
+            var baslangicDate = new Date();
+            baslangicDate.setDate(bitisDate.getDate() - 60);
+            const fundResponse = await axios.get("https://ws.spk.gov.tr/PortfolioValues/api/PortfoyDegerleri/" + apiText + "/1/" + this.getFormattedDateForApi(baslangicDate) + "/" + this.getFormattedDateForApi(bitisDate));
+
+
+            var funds: any[] = [];
+            if (fundResponse.status == 200 && fundResponse.data != null && fundResponse.data.length > 0) {
+                var fundItemToday: FonModel[] = [];
+                var responseFunds: FonModel[] = fundResponse.data;
+                responseFunds.forEach((item: FonModel) => {
+                    if ((!funds.some(x => x == item.FonKodu) || funds.length == 0) && item.FonTuru != FonTurleri.KorumaAmacliFon && item.FonTuru != FonTurleri.GumusFonu) {
+                        funds.push(item.FonKodu);
+
+                        var currDate = new Date();
+                        var currDateString = this.getFormattedDateForListing(currDate);
+                        var currFundValue = responseFunds.find((x: FonModel) => x.Tarih.toString() == currDateString && x.FonKodu == item.FonKodu);
+                        var currIterator = 0;
+                        while (currFundValue == undefined && currIterator < GunSayisi.onBesGun) {
+                            currDate.setDate(currDate.getDate() - 1);
+                            currDateString = this.getFormattedDateForListing(currDate);
+                            currFundValue = responseFunds.find((x: FonModel) => x.Tarih.toString() == currDateString && x.FonKodu == item.FonKodu);
+                            currIterator++;
+                        }
+
+                        currDate.setDate(currDate.getDate() - 1);
+                        var preDateString = this.getFormattedDateForListing(currDate);
+                        var preFundValue = responseFunds.find((x: FonModel) => x.Tarih.toString() == preDateString && x.FonKodu == item.FonKodu);
+                        var preIterator = 0;
+                        while (preFundValue == undefined && preIterator < GunSayisi.onBesGun) {
+                            currDate.setDate(currDate.getDate() - 1);
+                            preDateString = this.getFormattedDateForListing(currDate);
+                            preFundValue = responseFunds.find((x: FonModel) => x.Tarih.toString() == preDateString && x.FonKodu == item.FonKodu);
+                            preIterator++;
+                        }
+                        if (currFundValue != undefined && preFundValue != undefined) {
+                            if (currFundValue.BirimPayDegeri != undefined && preFundValue.BirimPayDegeri != undefined) {
+                                if (currFundValue.BirimPayDegeri != null && preFundValue.BirimPayDegeri != null) {
+                                    if (currFundValue.BirimPayDegeri != 0 && preFundValue.BirimPayDegeri != null) {
+                                        currFundValue.GunlukArtisYuzdesi = ((currFundValue.BirimPayDegeri - preFundValue.BirimPayDegeri) * 100) / preFundValue.BirimPayDegeri;
+                                    }
+                                    else {
+
+                                        currFundValue.GunlukArtisYuzdesi = 0;
+                                    }
+                                }
+                                else {
+
+                                    currFundValue.GunlukArtisYuzdesi = 0;
+                                }
+                            }
+                            else {
+
+                                currFundValue.GunlukArtisYuzdesi = 0;
+                            }
+                        }
+                        else {
+
+                            currFundValue.GunlukArtisYuzdesi = 0;
+                        }
+
+                        if (currFundValue != undefined) {
+                            currFundValue.AlinanFonlar = [];
+                            fundItemToday.push(currFundValue);
+
+                            //analiz için
+                            // if (currFundValue.FonTuru == FonTurleri.KarmaFon || currFundValue.FonTuru == FonTurleri.DegiskenFon) {
+                            //     KarmaVeDegiskenFonlarToday.push(currFundValue);
+                            //     KarmaVeDegiskenFonlarOneMonthAgo.push(item);
+                            // }
+                        }
+                    }
+                })
+
+                firebaseFonlar.forEach(item => {
+                    var index = fundItemToday.findIndex(x => x.FonKodu == item.fundName);
+                    if (index >= 0) {
+                        item.createdDate = new Date(item.createdDate);
+                        item.dateView = this.getFormattedDateForView(item.createdDate);
+                        fundItemToday[index].AlinanFonlar.push(item);
+                    }
+                })
+
+                fundItemToday.forEach(fon => {
+                    var toplamOdenenPara = 0;
+                    var toplamAlinanAdet = 0;
+                    fon.AlinanFonlar.forEach(item => {
+                        toplamOdenenPara += item.fundPurchaseValue * item.fundCount;
+                        toplamAlinanAdet += item.fundCount;
+                    })
+                    var ortalamaMaliyet = toplamOdenenPara / toplamAlinanAdet;
+                    fon.ortalamaMaliyet = ortalamaMaliyet;
+                })
+                this.setState({
+                    fundItemToday: fundItemToday,
+                })
+            }
+        }
+        else{
+            this.setState({
+                fundItemToday: [],
+            })
+        }
     }
 
-    showAddPortfoy() {
+    getFormattedDateForListing(date: Date) {
+        let year = date.getFullYear();
+        let month = (1 + date.getMonth()).toString().padStart(2, '0');
+        let day = date.getDate().toString().padStart(2, '0');
+        return year + '-' + month + "-" + day + "T00:00:00";
+    }
 
+    getFormattedDateForApi(date: Date) {
+        let year = date.getFullYear();
+        let month = (1 + date.getMonth()).toString().padStart(2, '0');
+        let day = date.getDate().toString().padStart(2, '0');
+        return month + '-' + day + "-" + year;
+    }
+    getFormattedDateForView(date: Date) {
+        let year = date.getFullYear();
+        let month = (1 + date.getMonth()).toString().padStart(2, '0');
+        let day = date.getDate().toString().padStart(2, '0');
+        return day + '-' + month + "-" + year;
     }
 
     addPortfoy() {
-        addPortfoy(this.state.userInfo.uid, null, this.state.portfoyName, new Date(), new Date(), true);
-        this.setState({ portfoyName: null })
         fetchPortfoyDataFirebase(this.state.userInfo.uid).then(result => {
-            var portfoyler: any[] = []
+            var portfoyler: FirebasePortfoyModel[] = []
+            var portfoylerDropDownPicker: any[] = []
             result.forEach(element => {
-                portfoyler.push({ value: element._snapshot.key, label: element._snapshot.value.portfoyName });
+                var portfoy: FirebasePortfoyModel = {
+                    portfoyName: element._snapshot.value.portfoyName,
+                    portfoyId: element._snapshot.value.portfoyId,
+                    isActive: element._snapshot.value.isActive,
+                    createdDate: element._snapshot.value.createdDate,
+                    updatedDate: element._snapshot.value.updatedDate,
+
+                };
+                portfoyler.push(portfoy);
+                portfoylerDropDownPicker.push({ value: element._snapshot.value.portfoyId, label: element._snapshot.value.portfoyName });
             })
             this.setState({
                 portfoyler: portfoyler,
-                defaultDropDownPickerItem: portfoyler[portfoyler.length - 1].value,
+                portfoylerDropDownPicker: portfoylerDropDownPicker,
+                defaultDropDownPickerItem: portfoyler[portfoyler.length - 1].portfoyId,
+                selectedPortfoy: portfoyler[portfoyler.length - 1],
+                isLoading: false,
             })
         });
     }
 
-    dropDownItemSelect(value: any) {
+    addFon = async () => {
+        fetchPortfoyFundsDataFirebase(this.state.userInfo.uid, this.state.defaultDropDownPickerItem).then(result => {
+            var firebaseFonlar: FirebaseFonModel[] = []
+            result.forEach(element => {
+                firebaseFonlar.push(element._snapshot.value);
+            })
+
+            //sondan beş eleman fon değil portföyün genel bilgileri
+            firebaseFonlar.pop();
+            firebaseFonlar.pop();
+            firebaseFonlar.pop();
+            firebaseFonlar.pop();
+            firebaseFonlar.pop();
+
+            this.fetchFunds(firebaseFonlar);
+
+            this.setState({
+                firebaseFonlar: firebaseFonlar,
+                isLoading: false,
+            })
+        })
+    }
+
+    dropDownItemSelect = async (value: any) => {
+
+        var portfoyIndex = this.state.portfoyler.findIndex(x => x.portfoyId == value);
         fetchPortfoyFundsDataFirebase(this.state.userInfo.uid, value).then(result => {
             var firebaseFonlar: FirebaseFonModel[] = []
             result.forEach(element => {
@@ -230,65 +399,23 @@ export default class Deneme extends Component<Props, FonGenelBilgiState> {
             firebaseFonlar.pop();
             firebaseFonlar.pop();
             firebaseFonlar.pop();
+
+            this.fetchFunds(firebaseFonlar);
+
             this.setState({
                 firebaseFonlar: firebaseFonlar,
                 defaultDropDownPickerItem: value,
+                selectedPortfoy: this.state.portfoyler[portfoyIndex],
+                isLoading: false,
             })
         })
-    }
-
-    searchText = (e: string) => {
-        let text = e.toLowerCase()
-        let trucks = this.state.funds
-        let filteredName = trucks.filter((item) => {
-            return item.Kodu.toLowerCase().concat(item.Adi.toLowerCase()).match(text)
-        })
-        if (!text || text === '') {
-            this.setState({
-                listingData: []
-            })
-        } else if (!Array.isArray(filteredName) && filteredName == null && filteredName) {
-            // set no data flag to true so as to render flatlist conditionally
-            this.setState({
-                listingData: []
-            })
-        } else if (Array.isArray(filteredName)) {
-            this.setState({
-                listingData: filteredName,
-            })
-        }
-    }
-
-    getFundData = async (fonKodu: string) => {
-        var bitisDate = new Date();
-        var baslangicDate = new Date();
-        baslangicDate.setDate(bitisDate.getDate() - 365);
-        debugger
-        const fundResponse = await axios.get("https://ws.spk.gov.tr/PortfolioValues/api/PortfoyDegerleri/" + fonKodu + "/1/" + this.getFormattedDateForApi(baslangicDate) + "/" + this.getFormattedDateForApi(bitisDate));
-        debugger
-        if (fundResponse.status == 200 && fundResponse.data != null && fundResponse.data.length > 0) {
-            var fund: FonModel = fundResponse.data[fundResponse.data.length - 1];
-            this.setState({
-                selectedFund: fund,
-                isSelectedFund: true,
-                fonDegeri: String(fund.BirimPayDegeri),
-                fonKodu: fund.FonKodu
-            });
-        }
-    }
-
-    getFormattedDateForApi(date: Date) {
-        let year = date.getFullYear();
-        let month = (1 + date.getMonth()).toString().padStart(2, '0');
-        let day = date.getDate().toString().padStart(2, '0');
-        return month + '-' + day + "-" + year;
     }
 
     render() {
         return (
             <View style={{ backgroundColor: colors.backgroundColor, flex: 1 }}>
                 <StatusBar backgroundColor="#363E58" />
-                <Container>
+                <Container style={{ backgroundColor: colors.backgroundColor }}>
                     <Tabs tabBarPosition='bottom' tabContainerStyle={{ height: 1 }}
                         tabBarUnderlineStyle={{
                             backgroundColor: colors.backgroundColor,
@@ -298,13 +425,13 @@ export default class Deneme extends Component<Props, FonGenelBilgiState> {
                             <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} style={{ backgroundColor: colors.backgroundColor }}>
                                 <View style={{ flexDirection: "row" }}>
                                     <View style={{ flexDirection: "row", borderRadius: 5, }}>
-                                        <TouchableOpacity style={{ flexDirection: "row", backgroundColor: "gray", padding: 9 }} onPress={() => this.setState({ isAddPortfoy: !this.state.isAddPortfoy })}>
+                                        <TouchableOpacity style={{ flexDirection: "row", backgroundColor: "gray", padding: 9 }} onPress={() => this.props.navigation.navigate("Portföy Ekle", { portfoyEkle: this.addPortfoy.bind(this) })}>
                                             <Ionicons name={"add-sharp"} size={30} color={colors.White} />
                                         </TouchableOpacity>
                                     </View>
                                     <View style={{ flex: 1 }}>
                                         <DropDownPicker
-                                            items={this.state.portfoyler}
+                                            items={this.state.portfoylerDropDownPicker}
                                             containerStyle={{ height: 50 }}
                                             style={{ backgroundColor: '#363E58' }}
                                             itemStyle={{
@@ -323,177 +450,120 @@ export default class Deneme extends Component<Props, FonGenelBilgiState> {
                                         />
                                     </View>
                                 </View>
-                                {!this.state.isLoading ?
-                                    <ScrollView style={{ backgroundColor: colors.backgroundColor, height: "100%" }} >
-                                        {this.state.isAddPortfoy ?
-                                            <View style={{ margin: 10, flexDirection: "row" }}>
-                                                <View style={styles.inputPortfoy}>
-                                                    <Input
-                                                        inputStyle={{ color: 'black' }}
-                                                        placeholder="Portföy Adı"
-                                                        placeholderTextColor="gray"
-                                                        value={this.state.portfoyName}
-                                                        autoCapitalize="none"
-                                                        autoCorrect={false}
-                                                        onChangeText={(text) => this.setState({ portfoyName: text })}
-                                                    />
-                                                </View>
-                                                <View style={{ alignItems: "center", justifyContent: "center", margin: 4, marginTop: 12 }}>
-                                                    {this.state.portfoyName != null && this.state.portfoyName != "" ? <TouchableOpacity style={{ backgroundColor: "#566573", padding: 6 }} onPress={() => this.addPortfoy()}>
-                                                        <Text style={{ color: colors.White, fontSize: 20 }}>Oluştur</Text>
-                                                    </TouchableOpacity> : <TouchableOpacity style={{ backgroundColor: "#566573", padding: 6 }} onPress={() => null}>
-                                                            <Text style={{ color: colors.White, fontSize: 20 }}>Oluştur</Text>
-                                                        </TouchableOpacity>}
-                                                </View>
+
+                                <ScrollView style={{ backgroundColor: colors.backgroundColor, height: "100%" }} >
+                                    {!this.state.isLoading ?
+                                        <View>
+                                            <View style={{ alignItems: "center", borderWidth: 1, borderColor: colors.White, margin: 5, paddingVertical: 10 }}>
+                                                <Text style={{ color: colors.White, fontSize: 15, fontWeight: "bold" }}>{"Portföy Adı: " + this.state.selectedPortfoy.portfoyName}</Text>
                                             </View>
-                                            : <View>
-                                                <View style={{ alignItems: "flex-start", justifyContent: "flex-start", margin: 4, marginTop: 12 }}>
-                                                    <TouchableOpacity style={{ backgroundColor: "#566573", padding: 6 }} onPress={() => this.setState({ isAddFund: !this.state.isAddFund, isSelectedFund: false, selectedFund: null, listingData: [] })}>
-                                                        <Text style={{ color: colors.White, fontSize: 20 }}>Fon Ekle</Text>
-                                                    </TouchableOpacity>
-                                                </View>
-                                                {this.state.isAddFund ?
-                                                    <View>
-                                                        {this.state.isSelectedFund ?
-                                                            <View>
-                                                                <View style={styles.inputPortfoy}>
-                                                                    <Input
-                                                                        inputStyle={{ color: 'black' }}
-                                                                        placeholder="Kodu"
-                                                                        placeholderTextColor="gray"
-                                                                        value={this.state.fonKodu}
-                                                                        autoCapitalize="none"
-                                                                        autoCorrect={false}
-                                                                        onChangeText={(text) => this.setState({ fonKodu: text })}
-                                                                    />
-                                                                </View>
-                                                                <View style={styles.inputPortfoy}>
-                                                                    <Input
-                                                                        inputStyle={{ color: 'black' }}
-                                                                        placeholder="Birim Pay Değeri"
-                                                                        placeholderTextColor="gray"
-                                                                        value={this.state.fonDegeri}
-                                                                        autoCapitalize="none"
-                                                                        keyboardType="number-pad"
-                                                                        autoCorrect={false}
-                                                                        onChangeText={(text) => this.setState({ fonDegeri: text })}
-                                                                    />
-                                                                </View>
-                                                                <View style={styles.inputPortfoy}>
-                                                                    <Input
-                                                                        inputStyle={{ color: 'black' }}
-                                                                        placeholder="Adet"
-                                                                        placeholderTextColor="gray"
-                                                                        value={this.state.fonAdet}
-                                                                        autoCapitalize="none"
-                                                                        keyboardType="number-pad"
-                                                                        autoCorrect={false}
-                                                                        onChangeText={(text) => this.setState({ fonAdet: text })}
-                                                                    />
-                                                                </View>
-
-                                                                <View style={{ margin: 5, flexDirection: "row" }}>
-                                                                    <Text style={{ color: colors.White, fontSize: 20, flex: 1 }}>
-                                                                        {Number(this.state.fonDegeri) * Number(this.state.fonAdet) + " TL"}
-                                                                    </Text>
-                                                                    <View style={{ flex: 1, justifyContent: "center" }}>
-                                                                        <TouchableOpacity onPress={() => this.addFund()} style={{ backgroundColor: colors.Eurobond, flex: 1, alignItems: "center", padding: 5 }}>
-                                                                            <Text style={{ color: colors.White, fontSize: 20 }}> Ekle</Text>
-                                                                        </TouchableOpacity>
+                                            <View >
+                                                <TouchableOpacity style={{ alignItems: "center", margin: 5, paddingVertical: 10, backgroundColor: colors.greenAdd }}
+                                                    onPress={() => this.props.navigation.navigate("Fon Ekle", { fonEkle: this.addFon.bind(this), portfoyId: this.state.defaultDropDownPickerItem })}>
+                                                    <Text style={{ color: colors.White, fontSize: 15, fontWeight: "bold" }}>{"Fon Ekle"}</Text>
+                                                </TouchableOpacity>
+                                            </View>
+                                            <FlatList
+                                                style={{ backgroundColor: "#363E58" }}
+                                                data={this.state.fundItemToday}
+                                                contentContainerStyle={{ paddingBottom: 60 }}
+                                                renderItem={({ item }) => (
+                                                    <View style={{ backgroundColor: "#363E58" }}>
+                                                        <TouchableOpacity onPress={() => this.props.navigation.navigate("Fon Detay", { fundItem: item })}>
+                                                            <View style={styles.containerPortfoy}>
+                                                                <View style={{ flexDirection: "row", borderBottomWidth: 1, borderColor: "grey" }}>
+                                                                    <View style={styles.row_cell1}>
+                                                                        <Text style={styles.textStyle}>{item.FonKodu}</Text>
                                                                     </View>
-                                                                </View>
-
-
-                                                            </View>
-                                                            :
-                                                            <View>
-                                                                <View style={{ height: 55 }}>
-                                                                    <Input
-                                                                        autoCapitalize='none'
-                                                                        autoCorrect={false}
-                                                                        onChangeText={this.searchText}
-                                                                        placeholder='Fon Ara'
-                                                                        placeholderTextColor='gray'
-                                                                        style={{
-                                                                            borderColor: '#3C435A',
-                                                                            backgroundColor: '#3C435A',
-                                                                            color: '#CFD5E8'
-                                                                        }}
-                                                                    />
-                                                                </View>
-
-
-                                                                <FlatList
-                                                                    style={{ backgroundColor: "#363E58" }}
-                                                                    contentContainerStyle={{ paddingBottom: 65 }}
-                                                                    data={this.state.listingData}
-                                                                    renderItem={({ item }) => (
-                                                                        <View style={{ backgroundColor: "#363E58" }}>
-                                                                            <TouchableOpacity onPress={() => this.getFundData(item.Kodu)}>
-                                                                                <View style={styles.container}>
-                                                                                    <Text style={{ color: colors.White, fontSize: 12, fontWeight: "bold" }}>
-                                                                                        {item.Kodu + " - " + item.Adi}
-                                                                                    </Text>
-
-                                                                                </View>
-
-                                                                            </TouchableOpacity>
-                                                                        </View>)}
-                                                                    keyExtractor={(item, index) => String(index)}
-                                                                />
-                                                            </View>}
-
-                                                    </View> :
-                                                    <View>
-                                                        <FlatList
-                                                            style={{ backgroundColor: "#363E58" }}
-                                                            //contentContainerStyle={{ paddingBottom: 195 }}
-                                                            data={this.state.firebaseFonlar}
-                                                            renderItem={({ item }) => (
-                                                                <View style={{ backgroundColor: "#363E58" }}>
-                                                                    <TouchableOpacity >
-                                                                        <View style={styles.container}>
-                                                                            <View>
-                                                                                <Text style={{ color: "white" }}>{item.fundName + " " + item.fundId}</Text>
-                                                                            </View>
-
+                                                                    <View style={styles.row_cell2}>
+                                                                        <Text style={styles.textStyle}>{item.FonUnvani}</Text>
+                                                                    </View>
+                                                                    <View style={styles.row_cell3}>
+                                                                        <View>
+                                                                            {item.GunlukArtisYuzdesi > 0 ? <Text style={styles.textStyleYuzdeDegisimPozitif}>{"%" + item.GunlukArtisYuzdesi.toFixed(2)}</Text> :
+                                                                                (item.GunlukArtisYuzdesi < 0 ? <Text style={styles.textStyleYuzdeDegisimNegatif}>{"%" + item.GunlukArtisYuzdesi.toFixed(2)}</Text> :
+                                                                                    <Text style={styles.textStyle}>{"%" + item.GunlukArtisYuzdesi}</Text>)}
                                                                         </View>
+                                                                        <View>
+                                                                            <Text style={styles.textStyleBirimPayDeger}>{item.BirimPayDegeri}</Text>
+                                                                        </View>
+                                                                    </View>
 
-                                                                    </TouchableOpacity>
-                                                                </View>)}
-                                                            keyExtractor={(item, index) => String(index)}
-                                                        />
-                                                    </View>}
-                                            </View>}
+                                                                </View>
+                                                                {item.AlinanFonlar.map(alinanFon =>
+                                                                    <View style={{ alignItems: "flex-start" }}>
+                                                                        {/* <View style={{ flex: 0.15 }}>
+                                                                                <Icon name="square" size={15} />
+                                                                            </View> */}
+                                                                        <View >
+                                                                            <Text style={{ color: colors.White, fontSize: 12 }}>{"Alındığı Tarih: " + alinanFon.dateView + " - Fiyat: " + alinanFon.fundPurchaseValue + " - Adet: " + alinanFon.fundCount}</Text>
+                                                                        </View>
+                                                                    </View>)}
+                                                                <View>
+                                                                    <Text style={{ color: colors.White, fontSize: 12 }}>{"Ortalama Maliyet: " + item.ortalamaMaliyet.toFixed(6)}</Text>
 
+                                                                </View>
+                                                            </View>
 
-
-                                    </ScrollView> : null}
+                                                        </TouchableOpacity>
+                                                    </View>)}
+                                                keyExtractor={(item, index) => String(index)}
+                                            />
+                                        </View>
+                                        : null}
+                                </ScrollView>
                             </KeyboardAvoidingView>
                         </Tab>
-                        <Tab heading={<TabHeading></TabHeading>}>
-                            <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"}>
-                                {!this.state.isLoading ?
-                                    <ScrollView style={{ backgroundColor: colors.backgroundColor }}>
-                                        <FlatList
-                                            style={{ backgroundColor: "#363E58" }}
-                                            contentContainerStyle={{ paddingBottom: 195 }}
-                                            data={this.state.portfoyler}
-                                            renderItem={({ item }) => (
-                                                <View style={{ backgroundColor: "#363E58" }}>
-                                                    <TouchableOpacity >
-                                                        <View style={styles.container}>
-                                                            <View>
-                                                                <Text style={{ color: "white" }}>{item.key + " " + item.value}</Text>
+
+
+
+                        <Tab heading={<TabHeading></TabHeading>} >
+                            <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} style={{ backgroundColor: colors.backgroundColor }}>
+
+                                <ScrollView style={{ backgroundColor: colors.backgroundColor, height: "100%" }}>
+                                    {!this.state.isLoading ?
+                                        <View>
+                                            <FlatList
+                                                style={{ backgroundColor: "#363E58" }}
+                                                contentContainerStyle={{ paddingBottom: 195 }}
+                                                data={this.state.portfoyler}
+                                                renderItem={({ item }) => (
+                                                    <View style={{ backgroundColor: "#363E58" }}>
+                                                        <TouchableOpacity >
+                                                            <View style={styles.container}>
+                                                                <View>
+                                                                    <Text style={{ color: "white" }}>{item.portfoyName + " " + item.portfoyId}</Text>
+                                                                </View>
+
                                                             </View>
 
-                                                        </View>
+                                                        </TouchableOpacity>
+                                                    </View>)}
+                                                keyExtractor={(item, index) => String(index)}
+                                            />
 
-                                                    </TouchableOpacity>
-                                                </View>)}
-                                            keyExtractor={(item, index) => String(index)}
-                                        />
-                                    </ScrollView> : null}
+
+                                            <FlatList
+                                                style={{ backgroundColor: "#363E58" }}
+                                                //contentContainerStyle={{ paddingBottom: 195 }}
+                                                data={this.state.firebaseFonlar}
+                                                renderItem={({ item }) => (
+                                                    <View style={{ backgroundColor: "#363E58" }}>
+                                                        <TouchableOpacity >
+                                                            <View style={styles.container}>
+                                                                <View>
+                                                                    <Text style={{ color: "white" }}>{item.fundName + " " + item.fundId}</Text>
+                                                                </View>
+
+                                                            </View>
+
+                                                        </TouchableOpacity>
+                                                    </View>)}
+                                                keyExtractor={(item, index) => String(index)}
+                                            />
+                                        </View>
+                                        : null}
+                                </ScrollView>
                             </KeyboardAvoidingView>
                         </Tab>
 

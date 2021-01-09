@@ -133,8 +133,28 @@ const styles = StyleSheet.create({
         paddingTop: 0,
         height: 50,
         marginTop: 10,
-        flex:1
+        marginRight:10,
+        marginLeft:10,
       },
+      containerPortfoy: {
+        elevation: 5,
+        borderRadius: 3,
+        borderColor:"white",
+        backgroundColor: "#1C212F",
+        flexDirection:"column",
+        justifyContent: 'flex-start',
+        //alignItems: 'center',
+        paddingTop: 1,
+        paddingBottom: 1,
+        paddingLeft: 8,
+        paddingRight: 8,
+        marginLeft: 1,
+        marginRight: 1,
+        marginTop: 2,
+        marginBottom: 2,
+        //height:70,
+        width:"100%",
+    },
 });
 
 export default styles;

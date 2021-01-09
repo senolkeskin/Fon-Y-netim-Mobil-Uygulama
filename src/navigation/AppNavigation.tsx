@@ -16,7 +16,9 @@ import LoginPage from "../pages/LoginPage"
 import SignUp from "../pages/SignUp"
 import { TouchableOpacity } from "react-native-gesture-handler";
 import { colors } from "../constants/colors";
-import PortfoyPage from "../pages/PortfoyPage"
+import PortfoyPage from "../pages/PortfoyPage";
+import AddFund from "../pages/AddFund";
+import AddPortfoy from "../pages/AddPortfoy";
 
 
 const HomeStack = createStackNavigator();
@@ -99,11 +101,49 @@ const AnalizStackScreen = () => {
 
 }
 
-const PortfoyStackScreen = () =>{
+const PortfoyStackScreen = () => {
   const { logout } = useContext(AuthContext);
   return (
     <PortfoyStack.Navigator>
       <PortfoyStack.Screen name="Portföy" component={PortfoyPage} options={{
+        headerTitleStyle: { color: "white" },
+        headerTintColor: "white",
+        headerBackground: () => (
+          <View style={{ backgroundColor: "#1C212F", flex: 1 }} />
+        ),
+        headerRight: () => (
+          <TouchableOpacity style={{ marginRight: 10 }} onPress={() => logout()}>
+            <Ionicons name={"log-out-outline"} size={25} color={"white"} />
+          </TouchableOpacity>
+        )
+      }} />
+      <PortfoyStack.Screen name="Fon Ekle" component={AddFund} options={{
+        headerTitleStyle: { color: "white" },
+        headerTintColor: "white",
+        headerBackground: () => (
+          <View style={{ backgroundColor: "#1C212F", flex: 1 }} />
+        ),
+        headerRight: () => (
+          <TouchableOpacity style={{ marginRight: 10 }} onPress={() => logout()}>
+            <Ionicons name={"log-out-outline"} size={25} color={"white"} />
+          </TouchableOpacity>
+        )
+      }} />
+      <PortfoyStack.Screen name="Portföy Ekle" component={AddPortfoy} options={{
+        headerTitleStyle: { color: "white" },
+        headerTintColor: "white",
+        headerBackground: () => (
+          <View style={{ backgroundColor: "#1C212F", flex: 1 }} />
+        ),
+        headerRight: () => (
+          <TouchableOpacity style={{ marginRight: 10 }} onPress={() => logout()}>
+            <Ionicons name={"log-out-outline"} size={25} color={"white"} />
+          </TouchableOpacity>
+        )
+      }} />
+
+      <PortfoyStack.Screen name="Fon Detay" component={FonDetayBilgi} options={{
+        headerTintColor: "white",
         headerTitleStyle: { color: "white" },
         headerBackground: () => (
           <View style={{ backgroundColor: "#1C212F", flex: 1 }} />
@@ -114,6 +154,7 @@ const PortfoyStackScreen = () =>{
           </TouchableOpacity>
         )
       }} />
+
     </PortfoyStack.Navigator>
   );
 }

@@ -26,8 +26,6 @@ import { colors } from "../constants/colors";
 import { Container, Tab, TabHeading, Tabs } from "native-base";
 import Svg from "react-native-svg"
 
-import { addFunInfo, deleteAllFundsInfo, fetchDataFirebase } from "../firebaseRealtimeDatabase/firebaseRealtimeDatabase"
-
 const screenWidth = Dimensions.get("window").width;
 
 
@@ -199,7 +197,7 @@ export default class Deneme extends Component<Props, FonGenelBilgiState> {
                                     fill: colors.White,
                                     textAlign: "center",
                                     alignItems: "center",
-                                    textAnchor: ({ datum }) => Math.abs(datum.y) > 140 ? "start" : "end"
+                                    textAnchor: ({ datum }) => Math.abs(datum.y) > 120 ? "start" : "end"
                                 },
 
                             }}

@@ -181,14 +181,13 @@ export default class FonGenelBilgi extends Component<Props, FonGenelBilgiState> 
                         currIterator++;
                     }
 
-                    var preDate = new Date();
-                    preDate.setDate(currDate.getDate() - 1);
-                    var preDateString = this.getFormattedDateForListing(preDate);
+                    currDate.setDate(currDate.getDate() - 1);
+                    var preDateString = this.getFormattedDateForListing(currDate);
                     var preFundValue = fundValues.find((x: FonModel) => x.Tarih.toString() == preDateString && x.FonKodu == item.FonKodu);
                     var preIterator = 0;
                     while (preFundValue == undefined && preIterator < GunSayisi.onBesGun) {
-                        preDate.setDate(preDate.getDate() - 1);
-                        preDateString = this.getFormattedDateForListing(preDate);
+                        currDate.setDate(currDate.getDate() - 1);
+                        preDateString = this.getFormattedDateForListing(currDate);
                         preFundValue = fundValues.find((x: FonModel) => x.Tarih.toString() == preDateString && x.FonKodu == item.FonKodu);
                         preIterator++;
                     }
@@ -198,7 +197,7 @@ export default class FonGenelBilgi extends Component<Props, FonGenelBilgiState> 
                         if (currFundValue.BirimPayDegeri != undefined && preFundValue.BirimPayDegeri != undefined) {
                             if (currFundValue.BirimPayDegeri != null && preFundValue.BirimPayDegeri != null) {
                                 if (currFundValue.BirimPayDegeri != 0 && preFundValue.BirimPayDegeri != null) {
-                                    currFundValue.GunlukArtisYuzdesi = ((currFundValue.BirimPayDegeri - preFundValue.BirimPayDegeri) * 100) / currFundValue.BirimPayDegeri;
+                                    currFundValue.GunlukArtisYuzdesi = ((currFundValue.BirimPayDegeri - preFundValue.BirimPayDegeri) * 100) / preFundValue.BirimPayDegeri;
                                 }
                                 else {
 
