@@ -5,12 +5,10 @@ import {
     KeyboardAvoidingView,
     Platform,
     StatusBar,
-    FlatList,
     Dimensions,
     ScrollView
 } from "react-native";
-import { NavigationScreenProp, NavigationParams, NavigationState, NavigationLeafRoute } from "react-navigation";
-// import { LineChart } from "react-native-chart-kit";
+import { NavigationScreenProp, NavigationParams, NavigationState } from "react-navigation";
 import axios from "axios";
 import { VictoryAxis, VictoryChart, VictoryLine, VictoryTheme, VictoryTooltip, VictoryVoronoiContainer, VictoryPie } from "victory-native";
 import Svg from "react-native-svg"
@@ -20,20 +18,14 @@ import DatePicker from 'react-native-datepicker'
 import { TouchableOpacity } from "react-native-gesture-handler";
 import { Tabs, Tab, TabHeading, Container } from 'native-base';
 import styles from "../styles";
-import database from '@react-native-firebase/database';
-
-
-
+import { moderateScale, scale } from "react-native-size-matters";
 
 const screenWidth = Dimensions.get("window").width;
-
 
 interface Props {
     navigation: NavigationScreenProp<NavigationState, NavigationParams>;
     route: any;
 }
-
-
 
 interface FonModel {
     BirimPayDegeri: number;
@@ -46,8 +38,6 @@ interface FonModel {
     ToplamDeger: number;
     YatirimciSayisi: number;
     GunlukArtisYuzdesi?: number;
-
-
     //fon içeriği
     DevletTahvili: number;
     BankaBonosu: number;
@@ -104,8 +94,6 @@ export default class FonDetayBilgi extends Component<Props, FonGenelBilgiState> 
     static navigationOptions = {
         headerShown: false,
     };
-
-
     constructor(props: Props) {
         super(props);
         this.state = {
@@ -131,9 +119,7 @@ export default class FonDetayBilgi extends Component<Props, FonGenelBilgiState> 
     }
 
     componentDidMount = async () => {
-
         var inputDates: any[] = [];
-
         var bitisDate = new Date();
         var baslangicDate = new Date();
         var oneWeekAgo = new Date();
@@ -149,20 +135,16 @@ export default class FonDetayBilgi extends Component<Props, FonGenelBilgiState> 
         sixMonthAgo.setDate(bitisDate.getDate() - 120);
         oneYearAgo.setDate(bitisDate.getDate() - 365);
         threeYearAgo.setDate(bitisDate.getDate() - 1095);
-
         inputDates.push({ date: oneWeekAgo, label: "Hafta", selected: true });
         inputDates.push({ date: oneMonthAgo, label: "1 Ay", selected: false });
         inputDates.push({ date: threeMonthAgo, label: "3 Ay", selected: false });
         inputDates.push({ date: sixMonthAgo, label: "6 Ay", selected: false });
         inputDates.push({ date: oneYearAgo, label: "1 Yıl", selected: false });
         inputDates.push({ date: threeYearAgo, label: "3 Yıl", selected: false });
-
-
         var datePickerBitisDate = this.getFormattedDateForView(bitisDate);
         var datePickerBaslangicDate = this.getFormattedDateForView(baslangicDate);
         var maxPickerBaslangicDate = this.getFormattedDateForView(bitisDate);
         var minPickerBaslangicDate = this.getFormattedDateForView(threeYearAgo);
-
         this.setState({
             baslangicDate: baslangicDate,
             bitisDate: bitisDate,
@@ -172,12 +154,7 @@ export default class FonDetayBilgi extends Component<Props, FonGenelBilgiState> 
             minPickerBaslangicDate: minPickerBaslangicDate,
             inputDates: inputDates,
         }, () => this.fetchData(this.state.baslangicDate, this.state.bitisDate));
-
-
-
-
     }
-
 
     fetchData = async (baslangicDate: Date, bitisDate: Date) => {
         const fundResponse = await axios.get("https://ws.spk.gov.tr/PortfolioValues/api/PortfoyDegerleri/" + this.props.route.params.fundItem.FonKodu + "/01/" + this.getFormattedDateForApi(baslangicDate) + "/" + this.getFormattedDateForApi(bitisDate));
@@ -332,14 +309,14 @@ export default class FonDetayBilgi extends Component<Props, FonGenelBilgiState> 
     lineChart() {
         return (
             <View>
-                <VictoryChart height={280} width={screenWidth}
+                <VictoryChart height={scale(300)} width={screenWidth}
                     containerComponent={
                         <VictoryVoronoiContainer
                             voronoiDimension="x"
                             labels={({ datum }) => datum.y + "\n" + datum.x}
                             labelComponent={
                                 <VictoryTooltip
-                                    cornerRadius={0}
+                                    cornerRadius={scale(0)}
                                     flyoutStyle={{ fill: colors.victoryTooltipFlyoutStyleColor }}
                                 />}
                             activateLabels={false}
@@ -347,22 +324,22 @@ export default class FonDetayBilgi extends Component<Props, FonGenelBilgiState> 
                 >
                     <VictoryAxis dependentAxis crossAxis
                         width={screenWidth}
-                        height={400}
+                        height={scale(400)}
                         theme={VictoryTheme.material}
-                        offsetX={50}
+                        offsetX={scale(45)}
                         standalone={false}
                         style={{
                             axis: { stroke: colors.axisStrokeColor },
-                            axisLabel: { fontSize: 16 },
+                            axisLabel: { fontSize: moderateScale(16,1) },
                             ticks: { stroke: colors.axisStrokeColor },
-                            tickLabels: { fontSize: 10, fill: colors.axisStrokeColor }
+                            tickLabels: { fontSize: moderateScale(10,1), fill: colors.axisStrokeColor }
                         }}
                     />
                     <VictoryAxis tickCount={5} style={{
                         axis: { stroke: colors.axisStrokeColor },
-                        axisLabel: { fontSize: 16 },
+                        axisLabel: { fontSize: moderateScale(16,1) },
                         ticks: { stroke: colors.axisStrokeColor },
-                        tickLabels: { fontSize: 10, padding: 5, angle: 340, verticalAnchor: 'middle', textAnchor: 'end', fill: colors.axisStrokeColor }
+                        tickLabels: { fontSize: moderateScale(9,1), padding: scale(5), angle: 340, verticalAnchor: 'middle', textAnchor: 'end', fill: colors.axisStrokeColor }
                     }} />
                     <VictoryLine
                         data={this.state.dataVictory}
@@ -382,13 +359,12 @@ export default class FonDetayBilgi extends Component<Props, FonGenelBilgiState> 
         return (
             <View style={{ flexDirection: "row" }}>
                 <View style={{ flex: 5 }}>
-                    <Svg width={screenWidth} height={230} viewBox="80 0 400 400">
+                    <Svg width={screenWidth} height={scale(220)} viewBox="80 0 400 400">
                         <VictoryPie
                             standalone={false}
-                            //labelRadius={150}
-                            labels={({ datum }) => ''}
+                            labels={() => ''}
                             style={{
-                                labels: { fontSize: 10, fill: "white" },
+                                labels: { fontSize: moderateScale(9,1), fill: colors.White },
                                 data: {
                                     fill: ({ datum }) => datum.l
                                 }
@@ -398,7 +374,7 @@ export default class FonDetayBilgi extends Component<Props, FonGenelBilgiState> 
                     </Svg>
                 </View>
                 <View style={{ flex: 4 }}>
-                    {this.state.dataVictoryForPieChart.map(r => <View style={{ margin: 5, flexDirection: "row" }}><View style={{ flex: 0.15 }}><Icon name="square" size={15} color={r.l} /></View><View style={{ flex: 1 }}><Text style={{ color: colors.White, fontSize: 10 }}>{r.x + ": %" + r.y}</Text></View></View>)}
+                    {this.state.dataVictoryForPieChart.map(r => <View style={{ margin: scale(5), flexDirection: "row" }}><View style={{ flex: 0.15 }}><Icon name="square" size={moderateScale(14,1)} color={r.l} /></View><View style={{ flex: 1 }}><Text style={{ color: colors.White, fontSize: moderateScale(9,1) }}>{r.x + ": %" + r.y}</Text></View></View>)}
                 </View>
             </View>
         )
@@ -438,52 +414,52 @@ export default class FonDetayBilgi extends Component<Props, FonGenelBilgiState> 
                 <StatusBar backgroundColor={"#1C212F"} />
 
                 <Container>
-                    <Tabs tabBarPosition='bottom' tabContainerStyle={{ height: 1 }}
+                    <Tabs tabBarPosition='bottom' tabContainerStyle={{ height: scale(1) }}
                         tabBarUnderlineStyle={{
                             backgroundColor: colors.backgroundColor,
-                            height: 2,
+                            height: scale(2),
                         }}>
 
                         <Tab heading={<TabHeading></TabHeading>}>
                             <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"}>
                                 {this.state.isVisibleLineChart ?
                                     <ScrollView style={{ backgroundColor: colors.backgroundColor }}>
-                                        <View style={{ alignItems: "center", justifyContent: "center", padding: 10, borderColor: "white", borderWidth: 1 }}>
+                                        <View style={{ alignItems: "center", justifyContent: "center", padding: scale(10), borderColor: "white", borderWidth: scale(1) }}>
                                             <View>
-                                                <Text style={{ fontSize: 15, textAlign: "center", color: "white" }}>{genelBilgi.FonKodu}</Text>
+                                                <Text style={{ fontSize: moderateScale(14,1), textAlign: "center", color: "white" }}>{genelBilgi.FonKodu}</Text>
                                             </View>
                                             <View>
-                                                <Text style={{ fontSize: 15, textAlign: "center", color: "white" }}>{genelBilgi.FonUnvani}</Text>
+                                                <Text style={{ fontSize: moderateScale(14,1), textAlign: "center", color: "white" }}>{genelBilgi.FonUnvani}</Text>
                                             </View>
-                                            <View style={{padding:3}}>
-                                                <Text style={{ fontSize: 15, textAlign: "center", color: "white" }}>{genelBilgi.FonTuru}</Text>
+                                            <View style={{padding:scale(3)}}>
+                                                <Text style={{ fontSize: moderateScale(14,1), textAlign: "center", color: "white" }}>{genelBilgi.FonTuru}</Text>
                                             </View>
-                                            <View style={{ flexDirection: "row", paddingTop: 5,borderBottomWidth:1, borderBottomColor:"gray" }}>
+                                            <View style={{ flexDirection: "row", paddingTop: scale(5),borderBottomWidth:scale(1), borderBottomColor:"gray" }}>
                                                 <View style={{ flex: 1 }}>
-                                                    <Text style={{ fontSize: 12, textAlign: "center", color: "white" }}>{"Yatırımcı Sayısı"}</Text>
+                                                    <Text style={{ fontSize: moderateScale(11,1), textAlign: "center", color: "white" }}>{"Yatırımcı Sayısı"}</Text>
                                                 </View>
                                                 <View style={{ flex: 1 }}>
-                                                    <Text style={{ fontSize: 12, textAlign: "center", color: "white" }}>{"Fon Toplam Değeri"}</Text>
+                                                    <Text style={{ fontSize: moderateScale(11,1), textAlign: "center", color: "white" }}>{"Fon Toplam Değeri"}</Text>
                                                 </View>
                                                 <View style={{ flex: 1 }}>
-                                                    <Text style={{ fontSize: 12, textAlign: "center", color: "white" }}>{"Pay Sayısı"}</Text>
+                                                    <Text style={{ fontSize: moderateScale(11,1), textAlign: "center", color: "white" }}>{"Pay Sayısı"}</Text>
                                                 </View>
                                             </View>
-                                            <View style={{ flexDirection: "row", paddingTop: 5 }}>
+                                            <View style={{ flexDirection: "row", paddingTop: scale(5) }}>
                                                 <View style={{ flex: 1 }}>
-                                                    <Text style={{ fontSize: 12, textAlign: "center", color: "white" }}>{genelBilgi.YatirimciSayisi}</Text>
+                                                    <Text style={{ fontSize: moderateScale(11,1), textAlign: "center", color: "white" }}>{genelBilgi.YatirimciSayisi}</Text>
                                                 </View>
                                                 <View style={{ flex: 1 }}>
-                                                    <Text style={{ fontSize: 12, textAlign: "center", color: "white" }}>{genelBilgi.ToplamDeger.toLocaleString()}</Text>
+                                                    <Text style={{ fontSize: moderateScale(11,1), textAlign: "center", color: "white" }}>{genelBilgi.ToplamDeger.toLocaleString()}</Text>
                                                 </View>
                                                 <View style={{ flex: 1 }}>
-                                                    <Text style={{ fontSize: 12, textAlign: "center", color: "white" }}>{genelBilgi.DolasimdakiPaySayisi.toLocaleString()}</Text>
+                                                    <Text style={{ fontSize: moderateScale(11,1), textAlign: "center", color: "white" }}>{genelBilgi.DolasimdakiPaySayisi.toLocaleString()}</Text>
                                                 </View>
                                             </View>
 
                                         </View>
 
-                                        <View style={{ flexDirection: "row", marginTop: 2 }}>
+                                        <View style={{ flexDirection: "row", marginTop: scale(2) }}>
                                             <DatePicker
                                                 style={{ width: screenWidth / 2, backgroundColor: colors.backgroundColor }}
                                                 date={this.state.datePickerBaslangicDate}
@@ -497,18 +473,17 @@ export default class FonDetayBilgi extends Component<Props, FonGenelBilgiState> 
                                                 customStyles={{
                                                     dateIcon: {
                                                         position: 'absolute',
-                                                        left: 0,
-                                                        top: 4,
-                                                        marginLeft: 0,
+                                                        left: scale(0),
+                                                        top: scale(4),
+                                                        marginLeft: scale(0),
                                                     },
                                                     dateInput: {
-                                                        marginLeft: 36,
+                                                        marginLeft: scale(36),
 
                                                     },
                                                     dateText: {
                                                         color: "white"
                                                     }
-                                                    // ... You can check the source to find the other keys.
                                                 }}
                                                 onDateChange={(date) => { this.getDataBetweenDate(date, true) }}
                                             />
@@ -525,54 +500,54 @@ export default class FonDetayBilgi extends Component<Props, FonGenelBilgiState> 
                                                 customStyles={{
                                                     dateIcon: {
                                                         position: 'absolute',
-                                                        left: 0,
-                                                        top: 4,
-                                                        marginLeft: 0
+                                                        left: scale(0),
+                                                        top: scale(4),
+                                                        marginLeft: scale(0),
                                                     },
                                                     dateInput: {
-                                                        marginLeft: 36
+                                                        marginLeft: scale(36),
+
                                                     },
                                                     dateText: {
                                                         color: "white"
                                                     }
-                                                    // ... You can check the source to find the other keys.
                                                 }}
                                                 onDateChange={(date) => { this.getDataBetweenDate(date, false) }}
                                             />
                                         </View>
 
-                                        <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "center", margin: 5 }}>
+                                        <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "center", margin: scale(5) }}>
                                             {this.state.inputDates.map(r =>
-                                                <TouchableOpacity style={{ backgroundColor: r.selected ? "#D35400" : "#808B96", borderRadius: 2, elevation: 2, padding: 10, paddingLeft: 15, paddingRight: 15, shadowColor: "#E74C3C" }}
+                                                <TouchableOpacity style={{ backgroundColor: r.selected ? "#D35400" : "#808B96", borderRadius: scale(2), elevation: scale(2), padding: scale(10), paddingLeft: scale(15), paddingRight: scale(15), shadowColor: "#E74C3C" }}
                                                     onPress={() => this.dateChanged(r)}>
                                                     <View style={{}}><Text style={{ color: colors.White }}>{r.label}</Text></View>
                                                 </TouchableOpacity>
                                             )}
                                         </View>
-                                        <View style={{ borderWidth: 1, borderColor: "gray" }}>
-                                            <View style={{ padding: 2, flexDirection: "row", paddingHorizontal: 10, justifyContent: "center", alignItems: "center", }}>
+                                        <View style={{ borderWidth: scale(1), borderColor: "gray" }}>
+                                            <View style={{ padding: scale(2), flexDirection: "row", paddingHorizontal: scale(10), justifyContent: "center", alignItems: "center", }}>
                                                 <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
-                                                    <Text style={{ flex: 1, fontSize: 13, fontWeight: "bold", color: colors.White }}>{"Başlangıç Fiyat"}</Text>
+                                                    <Text style={{ flex: 1, fontSize: moderateScale(12,1), fontWeight: "bold", color: colors.White }}>{"Başlangıç Fiyat"}</Text>
                                                 </View>
                                                 <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
-                                                    <Text style={{ flex: 1, fontSize: 13, fontWeight: "bold", color: colors.White }}>{"Son Fiyat"}</Text>
+                                                    <Text style={{ flex: 1, fontSize: moderateScale(12,1), fontWeight: "bold", color: colors.White }}>{"Son Fiyat"}</Text>
                                                 </View>
                                                 <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
-                                                    <Text style={{ flex: 1, fontSize: 13, fontWeight: "bold", color: colors.White }}>{"Getiri"}</Text>
+                                                    <Text style={{ flex: 1, fontSize: moderateScale(12,1), fontWeight: "bold", color: colors.White }}>{"Getiri"}</Text>
                                                 </View>
                                                 <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
-                                                    <Text style={{ flex: 1, fontSize: 13, fontWeight: "bold", color: colors.White }}>{"Yüzdelik Artış"}</Text>
+                                                    <Text style={{ flex: 1, fontSize: moderateScale(12,1), fontWeight: "bold", color: colors.White }}>{"Yüzdelik Artış"}</Text>
                                                 </View>
                                             </View>
-                                            <View style={{ padding: 2, flexDirection: "row", paddingHorizontal: 10, justifyContent: "center", alignItems: "center" }}>
+                                            <View style={{ padding: scale(2), flexDirection: "row", paddingHorizontal: scale(10), justifyContent: "center", alignItems: "center" }}>
                                                 <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
-                                                    <Text style={{ flex: 1, fontSize: 13, fontWeight: "bold", color: colors.White }}>{this.state.belirtilenAraliktakiBaslangicFiyat}</Text>
+                                                    <Text style={{ flex: 1, fontSize: moderateScale(13,1), fontWeight: "bold", color: colors.White }}>{this.state.belirtilenAraliktakiBaslangicFiyat}</Text>
                                                 </View>
                                                 <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
-                                                    <Text style={{ flex: 1, fontSize: 13, fontWeight: "bold", color: colors.White }}>{this.state.belirtilenAraliktakiSonFiyat}</Text>
+                                                    <Text style={{ flex: 1, fontSize: moderateScale(13,1), fontWeight: "bold", color: colors.White }}>{this.state.belirtilenAraliktakiSonFiyat}</Text>
                                                 </View>
                                                 <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
-                                                    <Text style={{ flex: 1, fontSize: 13, fontWeight: "bold", color: colors.White }}>{this.state.belirtilenAraliktakiArtisMiktari.toFixed(6)}</Text>
+                                                    <Text style={{ flex: 1, fontSize: moderateScale(13,1), fontWeight: "bold", color: colors.White }}>{this.state.belirtilenAraliktakiArtisMiktari.toFixed(6)}</Text>
                                                 </View>
                                                 <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
                                                     {this.state.belirtilenAraliktakiArtisYuzdesi > 0 ? <Text style={styles.textStyleYuzdeDegisimPozitif}>{"%" + this.state.belirtilenAraliktakiArtisYuzdesi.toFixed(2)}</Text> :
@@ -591,24 +566,24 @@ export default class FonDetayBilgi extends Component<Props, FonGenelBilgiState> 
                                 {this.state.isVisibleLineChart ?
 
                                     <ScrollView style={{ backgroundColor: colors.backgroundColor, height: "100%" }} >
-                                        <View style={{ alignItems: "center", justifyContent: "center", padding: 10, borderColor: "white", borderWidth: 1 }}>
-                                            <Text style={{ fontSize: 15, textAlign: "center", color: "white" }}>{this.state.lastFundValue.FonUnvani}</Text>
+                                        <View style={{ alignItems: "center", justifyContent: "center", padding: scale(10), borderColor: "white", borderWidth: scale(1) }}>
+                                            <Text style={{ fontSize: moderateScale(15,1), textAlign: "center", color: "white" }}>{this.state.lastFundValue.FonUnvani}</Text>
                                         </View>
-                                        <View style={{ justifyContent: "center", alignItems: "center", padding: 10 }}><Text style={{ textAlign: "center", fontSize: 12, color: colors.White }}>{"Günlük Artış Yüzdeleri (Başlangıç Günü %0)"}</Text></View>
-                                        <View style={{ margin: 5 }}>
-                                            <View style={{ margin: 5, flexDirection: "row", borderBottomWidth: 2, borderBottomColor: colors.White }}>
-                                                <Text style={{ flex: 1, fontSize: 15, fontWeight: "bold", color: colors.White }}>
+                                        <View style={{ justifyContent: "center", alignItems: "center", padding: scale(10) }}><Text style={{ textAlign: "center", fontSize: moderateScale(12,1), color: colors.White }}>{"Günlük Artış Yüzdeleri (Başlangıç Günü %0)"}</Text></View>
+                                        <View style={{ margin: scale(5) }}>
+                                            <View style={{ margin: scale(5), flexDirection: "row", borderBottomWidth: scale(2), borderBottomColor: colors.White }}>
+                                                <Text style={{ flex: 1, fontSize: moderateScale(15,1), fontWeight: "bold", color: colors.White }}>
                                                     {"Tarih"}
                                                 </Text>
-                                                <Text style={{ flex: 1.4, fontSize: 15, fontWeight: "bold", color: colors.White }}>
+                                                <Text style={{ flex: 1.4, fontSize: moderateScale(15,1), fontWeight: "bold", color: colors.White }}>
                                                     {"Fiyat (Artış Miktarı)"}
                                                 </Text>
-                                                <Text style={{ flex: 1, fontSize: 15, fontWeight: "bold", color: colors.White }}>
+                                                <Text style={{ flex: 1, fontSize: moderateScale(15,1), fontWeight: "bold", color: colors.White }}>
                                                     {"Yüzdelik Artış"}
                                                 </Text>
                                             </View>
                                             {this.state.analyzedDailyData.map(data =>
-                                                <View style={{ padding: 5, flexDirection: "row", borderColor: "gray", borderWidth: 1 }}>
+                                                <View style={{ padding: scale(5), flexDirection: "row", borderColor: "gray", borderWidth: scale(1) }}>
                                                     <View style={{ flex: 1 }}>
                                                         <Text style={{ color: colors.White }} >
                                                             {this.getFormattedDateForView(data.Tarih)}

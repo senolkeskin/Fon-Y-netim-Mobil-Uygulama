@@ -1,4 +1,4 @@
-import React, { Component, useContext } from "react";
+import React, { Component } from "react";
 import {
     View,
     Text,
@@ -6,34 +6,17 @@ import {
     Platform,
     StatusBar,
     Dimensions,
-    FlatList,
-    ScrollView,
+    FlatList
 } from "react-native";
 import { NavigationScreenProp, NavigationState, } from "react-navigation";
-import { Formik } from "formik";
-import * as Yup from "yup";
 import styles from "../styles";
-import Icon from "react-native-vector-icons/Ionicons";
-import RNPickerSelect from 'react-native-picker-select';
-import { Input, CheckBox, SearchBar } from "react-native-elements";
-import { LineChart } from "react-native-chart-kit";
+import { Input } from "react-native-elements";
 import axios from "axios";
-import { FonIcerikleri, FonTurleri, Gunler, GunSayisi } from "../constants/enums"
 import { TouchableOpacity } from "react-native-gesture-handler";
 import AsyncStorage from "@react-native-community/async-storage";
-import { VictoryAxis, VictoryBar, VictoryChart, VictoryLabel, VictoryLine, VictoryPie, VictoryTheme, } from "victory-native";
 import { colors } from "../constants/colors";
-import { Container, Tab, TabHeading, Tabs } from "native-base";
-import Svg from "react-native-svg"
-
-import { addFundInfo, addPortfoy, fetchPortfoyDataFirebase, fetchPortfoyFundsDataFirebase } from "../firebaseRealtimeDatabase/firebaseRealtimeDatabase"
-import { AuthContext } from "../navigation/Auth";
-import DropDownPicker from "react-native-dropdown-picker";
-import Ionicons from "react-native-vector-icons/Ionicons";
-import { color } from "react-native-reanimated";
-
-const screenWidth = Dimensions.get("window").width;
-
+import { addFundInfo } from "../firebaseRealtimeDatabase/firebaseRealtimeDatabase"
+import { moderateScale, scale } from "react-native-size-matters";
 
 interface Props {
     navigation: NavigationScreenProp<NavigationState>;
@@ -224,8 +207,8 @@ export default class Deneme extends Component<Props, FonGenelBilgiState> {
                     {this.state.isSelectedFund ?
                         <View style={{ marginTop: 10 }}>
                             <View style={{ flexDirection: "row" }}>
-                                <View style={{ flex: 1, alignItems: "flex-end", marginLeft: 10 }}>
-                                    <Text style={{ color: colors.White, marginTop: 20, fontSize: 20, }}>{"Kodu: "}</Text>
+                                <View style={{ flex: 1, alignItems: "flex-end", marginLeft: scale(10) }}>
+                                    <Text style={{ color: colors.White, marginTop: scale(20), fontSize: moderateScale(20,1), }}>{"Kodu: "}</Text>
                                 </View>
                                 <View style={{ flex: 5 }}>
                                     <View style={styles.inputPortfoy}>
@@ -245,8 +228,8 @@ export default class Deneme extends Component<Props, FonGenelBilgiState> {
 
 
                             <View style={{ flexDirection: "row" }}>
-                                <View style={{ flex: 1, alignItems: "flex-end", marginLeft: 10 }}>
-                                    <Text style={{ color: colors.White, marginTop: 20, fontSize: 20 }}>{"Fiyat: "}</Text>
+                                <View style={{ flex: 1, alignItems: "flex-end", marginLeft: scale(10) }}>
+                                    <Text style={{ color: colors.White, marginTop: scale(20), fontSize: moderateScale(20,1) }}>{"Fiyat: "}</Text>
                                 </View>
                                 <View style={{ flex: 5 }}>
                                     <View style={styles.inputPortfoy}>
@@ -266,8 +249,8 @@ export default class Deneme extends Component<Props, FonGenelBilgiState> {
 
 
                             <View style={{ flexDirection: "row" }}>
-                                <View style={{ flex: 1, alignItems: "flex-end", marginLeft: 10 }}>
-                                    <Text style={{ color: colors.White, marginTop: 20, fontSize: 20 }}>{"Adet: "}</Text>
+                                <View style={{ flex: 1, alignItems: "flex-end", marginLeft: scale(10) }}>
+                                    <Text style={{ color: colors.White, marginTop: scale(20), fontSize: moderateScale(20) }}>{"Adet: "}</Text>
                                 </View>
                                 <View style={{ flex: 5 }}>
                                     <View style={styles.inputPortfoy}>
@@ -285,15 +268,15 @@ export default class Deneme extends Component<Props, FonGenelBilgiState> {
                                 </View>
                             </View>
 
-                            <View style={{ margin: 5, flexDirection: "row" }}>
-                                <View style={{ flex: 1, alignItems: "center", margin: 5 }}>
-                                    <Text style={{ color: colors.White, fontSize: 20 }}>
+                            <View style={{ margin: scale(5), flexDirection: "row" }}>
+                                <View style={{ flex: 1, alignItems: "center", margin: scale(5) }}>
+                                    <Text style={{ color: colors.White, fontSize: moderateScale(20,1) }}>
                                         {Number(Number(this.state.fonDegeri) * Number(this.state.fonAdet)).toFixed(2) + " TL"}
                                     </Text>
                                 </View>
                                 <View style={{ flex: 1, alignItems: "center" }}>
-                                    <TouchableOpacity onPress={() => this.addFund()} style={{ alignItems: "center", margin: 5, paddingVertical: 10, backgroundColor: colors.greenAdd, paddingHorizontal: 20 }}>
-                                        <Text style={{ color: colors.White, fontSize: 15, fontWeight: "bold" }}> Ekle</Text>
+                                    <TouchableOpacity onPress={() => this.addFund()} style={{ alignItems: "center", margin: scale(5), paddingVertical: scale(10), backgroundColor: colors.greenAdd, paddingHorizontal: scale(20) }}>
+                                        <Text style={{ color: colors.White, fontSize: moderateScale(15), fontWeight: "bold" }}> Ekle</Text>
                                     </TouchableOpacity>
                                 </View>
                             </View>
@@ -312,13 +295,13 @@ export default class Deneme extends Component<Props, FonGenelBilgiState> {
                             </View>
                             <FlatList
                                 style={{ backgroundColor: colors.backgroundColor }}
-                                contentContainerStyle={{ paddingBottom: 65 }}
+                                contentContainerStyle={{ paddingBottom: scale(65) }}
                                 data={this.state.listingData}
                                 renderItem={({ item }) => (
                                     <View style={{ backgroundColor: colors.backgroundColor }}>
                                         <TouchableOpacity onPress={() => this.getFundData(item.Kodu)}>
                                             <View style={styles.container}>
-                                                <Text style={{ color: colors.White, fontSize: 12, fontWeight: "bold" }}>
+                                                <Text style={{ color: colors.White, fontSize: moderateScale(11,1), fontWeight: "bold" }}>
                                                     {item.Kodu + " - " + item.Adi}
                                                 </Text>
                                             </View>

@@ -6,35 +6,25 @@ import {
     Platform,
     StatusBar,
     Dimensions,
-    FlatList,
     ScrollView,
     ActivityIndicator,
 } from "react-native";
 import { NavigationScreenProp, NavigationState, } from "react-navigation";
-import { Formik } from "formik";
-import * as Yup from "yup";
 import styles from "../styles";
 import Icon from "react-native-vector-icons/Ionicons";
-import RNPickerSelect from 'react-native-picker-select';
-import { Input, CheckBox, SearchBar } from "react-native-elements";
-import { LineChart } from "react-native-chart-kit";
-import axios from "axios";
-import { FonIcerikleri, FonTurleri, Gunler, GunSayisi } from "../constants/enums"
-import { TouchableOpacity } from "react-native-gesture-handler";
+import { FonIcerikleri } from "../constants/enums"
 import AsyncStorage from "@react-native-community/async-storage";
-import { VictoryAxis, VictoryBar, VictoryChart, VictoryLabel, VictoryLine, VictoryPie, VictoryTheme, } from "victory-native";
+import { VictoryAxis, VictoryBar, VictoryChart, VictoryLabel, VictoryPie, VictoryTheme, } from "victory-native";
 import { colors } from "../constants/colors";
 import { Container, Tab, TabHeading, Tabs } from "native-base";
 import Svg from "react-native-svg"
+import { moderateScale, scale } from "react-native-size-matters";
 
 const screenWidth = Dimensions.get("window").width;
-
 
 interface Props {
     navigation: NavigationScreenProp<NavigationState>;
 }
-
-
 
 interface FonModel {
     BankaBonosu: number;
@@ -190,15 +180,15 @@ export default class Deneme extends Component<Props, FonGenelBilgiState> {
                             style={{
                                 data: {
                                     fill: ({ datum }) => datum.l,
-                                    fillOpacity: 0.6,
-                                    strokeWidth: 2
+                                    fillOpacity: scale(0.6),
+                                    strokeWidth: scale(2),
                                 },
                                 labels: {
-                                    fontSize: 10,
+                                    fontSize: moderateScale(9,1),
                                     fill: colors.White,
                                     textAlign: "center",
                                     alignItems: "center",
-                                    textAnchor: ({ datum }) => Math.abs(datum.y) > 120 ? "start" : "end"
+                                    textAnchor: ({ datum }) => datum.y > 500 || datum.y < 0 ? "start" : "end"
                                 },
 
                             }}
@@ -231,13 +221,13 @@ export default class Deneme extends Component<Props, FonGenelBilgiState> {
         return (
             <View style={{ flexDirection: "column" }}>
                 <View style={{ flex: 5 }}>
-                    <Svg width={screenWidth} height={300} viewBox="0 0 400 400">
+                    <Svg width={screenWidth} height={scale(280)} viewBox="0 0 400 400">
                         <VictoryPie
                             standalone={false}
                             //labelRadius={150}
                             labels={({ datum }) => ''}
                             style={{
-                                labels: { fontSize: 10, fill: "white" },
+                                labels: { fontSize: moderateScale(9,1), fill: "white" },
                                 data: {
                                     fill: ({ datum }) => datum.l
                                 }
@@ -247,7 +237,7 @@ export default class Deneme extends Component<Props, FonGenelBilgiState> {
                     </Svg>
                 </View>
                 <View style={{ flex: 4 }}>
-                    {this.state.fonDetayDistributionToday.sort((a, b) => b.y - a.y).map(r => <View style={{ margin: 5, flexDirection: "row", alignItems: "center", justifyContent: "center" }}><View style={{ flex: 0.2, alignItems: "flex-end", justifyContent: "flex-end" }}><Icon name="square" size={20} color={r.l} /></View><View style={{ flex: 1, alignItems: "flex-start", justifyContent: "flex-start" }}><Text style={{ color: colors.White, fontSize: 12 }}>{r.x + ": %" + r.y.toFixed(2)}</Text></View></View>)}
+                    {this.state.fonDetayDistributionToday.sort((a, b) => b.y - a.y).map(r => <View style={{ margin: 5, flexDirection: "row", alignItems: "center", justifyContent: "center" }}><View style={{ flex: 0.2, alignItems: "flex-end", justifyContent: "flex-end" }}><Icon name="square" size={moderateScale(20,1)} color={r.l} /></View><View style={{ flex: 1, alignItems: "flex-start", justifyContent: "flex-start" }}><Text style={{ color: colors.White, fontSize: moderateScale(11,1) }}>{r.x + ": %" + r.y.toFixed(2)}</Text></View></View>)}
                 </View>
             </View>
         )
@@ -273,23 +263,18 @@ export default class Deneme extends Component<Props, FonGenelBilgiState> {
         return (
             <View style={{ backgroundColor: colors.backgroundColor, flex: 1 }}>
                 <StatusBar backgroundColor={"#1C212F"} />
-                {/* <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} >
-                    <View style={{ backgroundColor: "#3C435A" }}>
-                        {this.degiskenVeKarmaFonBarChart()}
-                    </View>
-                </KeyboardAvoidingView> */}
                 <Container>
                     <Tabs tabBarPosition='bottom' tabContainerStyle={{ height: 1 }}
                         tabBarUnderlineStyle={{
                             backgroundColor: colors.backgroundColor,
-                            height: 2,
+                            height: scale(2),
                         }}>
                         <Tab heading={<TabHeading></TabHeading>}>
                             <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"}>
                                 {!this.state.isLoading ?
                                     <ScrollView style={{ backgroundColor: colors.backgroundColor, height: "100%" }} >
-                                        <View style={{ alignItems: "center", justifyContent: "center", padding: 10, borderColor: "white", borderWidth: 1 }}>
-                                            <Text style={{ fontSize: 15, textAlign: "center", color: "white" }}>{"Değişken ve Karma Fonların Günlük İçerik Dağılımı"}</Text>
+                                        <View style={{ alignItems: "center", justifyContent: "center", padding: scale(10), borderColor: "white", borderWidth: scale(1) }}>
+                                            <Text style={{ fontSize: moderateScale(14,1), textAlign: "center", color: "white" }}>{"Değişken ve Karma Fonların Günlük İçerik Dağılımı"}</Text>
                                         </View>
                                         {this.degiskenVeKarmaFonPieChart()}
                                     </ScrollView> : null}
@@ -299,15 +284,13 @@ export default class Deneme extends Component<Props, FonGenelBilgiState> {
                             <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"}>
                                 {!this.state.isLoading ?
                                     <ScrollView style={{ backgroundColor: colors.backgroundColor }}>
-                                        <View style={{ alignItems: "center", justifyContent: "center", padding: 10, borderColor: "white", borderWidth: 1 }}>
-                                            <Text style={{ fontSize: 15, textAlign: "center", color: "white" }}>{"Değişken ve Karma Fonların Aylık İçerik Değişimi"}</Text>
+                                        <View style={{ alignItems: "center", justifyContent: "center", padding: scale(10), borderColor: "white", borderWidth: scale(1) }}>
+                                            <Text style={{ fontSize: moderateScale(14,1), textAlign: "center", color: "white" }}>{"Değişken ve Karma Fonların Aylık İçerik Değişimi"}</Text>
                                         </View>
                                         {this.degiskenVeKarmaFonBarChart()}
                                     </ScrollView> : null}
                             </KeyboardAvoidingView>
                         </Tab>
-
-
                     </Tabs>
                 </Container>
                 {this.renderLoading()}

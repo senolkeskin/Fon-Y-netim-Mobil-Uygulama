@@ -1,4 +1,4 @@
-import React, { Component, useContext } from "react";
+import React, { Component } from "react";
 import {
     View,
     Text,
@@ -6,34 +6,15 @@ import {
     Platform,
     StatusBar,
     Dimensions,
-    FlatList,
-    ScrollView,
 } from "react-native";
 import { NavigationScreenProp, NavigationState, } from "react-navigation";
-import { Formik } from "formik";
-import * as Yup from "yup";
 import styles from "../styles";
-import Icon from "react-native-vector-icons/Ionicons";
-import RNPickerSelect from 'react-native-picker-select';
-import { Input, CheckBox, SearchBar } from "react-native-elements";
-import { LineChart } from "react-native-chart-kit";
-import axios from "axios";
-import { FonIcerikleri, FonTurleri, Gunler, GunSayisi } from "../constants/enums"
+import { Input } from "react-native-elements";
 import { TouchableOpacity } from "react-native-gesture-handler";
 import AsyncStorage from "@react-native-community/async-storage";
-import { VictoryAxis, VictoryBar, VictoryChart, VictoryLabel, VictoryLine, VictoryPie, VictoryTheme, } from "victory-native";
 import { colors } from "../constants/colors";
-import { Container, Tab, TabHeading, Tabs } from "native-base";
-import Svg from "react-native-svg"
-
-import { addFunInfo, addPortfoy, fetchPortfoyDataFirebase, fetchPortfoyFundsDataFirebase } from "../firebaseRealtimeDatabase/firebaseRealtimeDatabase"
-import { AuthContext } from "../navigation/Auth";
-import DropDownPicker from "react-native-dropdown-picker";
-import Ionicons from "react-native-vector-icons/Ionicons";
-import { color } from "react-native-reanimated";
-
-const screenWidth = Dimensions.get("window").width;
-
+import { addPortfoy } from "../firebaseRealtimeDatabase/firebaseRealtimeDatabase"
+import { scale } from "react-native-size-matters";
 
 interface Props {
     navigation: NavigationScreenProp<NavigationState>;
@@ -182,8 +163,8 @@ export default class Deneme extends Component<Props, FonGenelBilgiState> {
         let day = date.getDate().toString().padStart(2, '0');
         return month + '-' + day + "-" + year;
     }
-    
-    goBack(){
+
+    goBack() {
         addPortfoy(this.state.userInfo.uid, null, this.state.portfoyName, new Date(), new Date(), true);
         this.props.navigation.goBack();
         this.props.route.params.portfoyEkle();
@@ -206,8 +187,8 @@ export default class Deneme extends Component<Props, FonGenelBilgiState> {
                                 onChangeText={(text) => this.setState({ portfoyName: text })}
                             />
                         </View>
-                        <View style={{ margin: 10, alignItems: "flex-end" }}>
-                            <TouchableOpacity style={{ padding: 12, paddingHorizontal: 40, backgroundColor: colors.White }} onPress={() => this.goBack()}>
+                        <View style={{ margin: scale(10), alignItems: "flex-end" }}>
+                            <TouchableOpacity style={{ padding: scale(12), paddingHorizontal: scale(40), backgroundColor: colors.White }} onPress={() => this.goBack()}>
                                 <Text style={{ color: "black", fontWeight: "bold" }}>{"Ekle"}</Text>
                             </TouchableOpacity>
                         </View>

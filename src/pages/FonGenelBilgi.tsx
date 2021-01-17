@@ -17,6 +17,7 @@ import { TouchableOpacity } from "react-native-gesture-handler";
 import DropDownPicker from "react-native-dropdown-picker";
 import AsyncStorage from "@react-native-community/async-storage"
 import { colors } from "../constants/colors";
+import { moderateScale, scale } from "react-native-size-matters";
 
 interface Props {
     navigation: NavigationScreenProp<NavigationState>;
@@ -648,7 +649,7 @@ export default class FonGenelBilgi extends Component<Props, FonGenelBilgiState> 
                 <StatusBar backgroundColor={"#1C212F"} />
                 <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} >
                     <View style={{ backgroundColor: colors.backgroundColor }}>
-                        <View style={{ height: 55 }}>
+                        <View style={{ height: scale(55) }}>
                             <Input
                                 autoCapitalize='none'
                                 autoCorrect={false}
@@ -666,7 +667,7 @@ export default class FonGenelBilgi extends Component<Props, FonGenelBilgiState> 
                         <View>
                             <DropDownPicker
                                 items={this.state.dropDownPickerItems}
-                                containerStyle={{ height: 40 }}
+                                containerStyle={{ height: scale(40) }}
                                 style={{ backgroundColor: colors.backgroundColor }}
                                 itemStyle={{
                                     justifyContent: 'flex-start', backgroundColor: colors.backgroundColor
@@ -675,18 +676,18 @@ export default class FonGenelBilgi extends Component<Props, FonGenelBilgiState> 
                                 onChangeItem={item => this.dropDownItemSelect(item.value)}
                                 placeholder={"Fon Türü Seçiniz (SPK'dan alınan fon türleri)"}
                                 labelStyle={{
-                                    fontSize: 14,
+                                    fontSize: moderateScale(13,1),
                                     textAlign: 'left',
                                     color: 'white'
                                 }}
-                                dropDownMaxHeight={500}
+                                dropDownMaxHeight={scale(460)}
                             />
                         </View>
 
                         <View>
                             <DropDownPicker
                                 items={this.state.dropDownPickerItemsForContains}
-                                containerStyle={{ height: 40 }}
+                                containerStyle={{ height: scale(40) }}
                                 style={{ backgroundColor: colors.backgroundColor }}
                                 itemStyle={{
                                     justifyContent: 'flex-start', backgroundColor: colors.backgroundColor
@@ -695,17 +696,17 @@ export default class FonGenelBilgi extends Component<Props, FonGenelBilgiState> 
                                 onChangeItem={item => this.dropDownItemSelectForContains(item.value)}
                                 placeholder={"Fon İçeriği Seçiniz"}
                                 labelStyle={{
-                                    fontSize: 14,
+                                    fontSize: moderateScale(13,1),
                                     textAlign: 'left',
                                     color: 'white'
                                 }}
-                                dropDownMaxHeight={500}
+                                dropDownMaxHeight={scale(460)}
                             />
                         </View>
 
                         {this.state.isLoading ? <FlatList
                             style={{ backgroundColor: colors.backgroundColor }}
-                            contentContainerStyle={{ paddingBottom: 195 }}
+                            contentContainerStyle={{ paddingBottom: scale(195) }}
                             data={this.state.listingData}
                             renderItem={({ item }) => (
                                 <View style={{ backgroundColor: colors.backgroundColor }}>
