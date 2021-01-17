@@ -263,7 +263,7 @@ export default class Deneme extends Component<Props, FonGenelBilgiState> {
     }
 
     renderBannerAd() {
-        const adUnitId = __DEV__ ? TestIds.BANNER : firebaseJson["react-native"].admob_android_app_id;
+        const adUnitId = "ca-app-pub-2663317592266647/6786418943";
         return (
             <BannerAd
                 unitId={adUnitId}
@@ -282,12 +282,15 @@ export default class Deneme extends Component<Props, FonGenelBilgiState> {
 
     showInterstitialAd = () => {
         // Create a new instance
-        const interstitialAd = InterstitialAd.createForAdRequest(TestIds.INTERSTITIAL);
+        const interstitialAd = InterstitialAd.createForAdRequest("ca-app-pub-2663317592266647/4515478822");
 
         // Add event handlers
         interstitialAd.onAdEvent((type, error) => {
             if (type === AdEventType.LOADED) {
                 interstitialAd.show();
+            }
+            if(type === AdEventType.ERROR){
+                console.log(error+" geçiş eror")
             }
         });
 

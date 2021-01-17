@@ -992,7 +992,7 @@ export default class Deneme extends Component<Props, FonGenelBilgiState> {
     }
 
     renderBannerAd() {
-        const adUnitId = __DEV__ ? TestIds.BANNER : firebaseJson["react-native"].admob_android_app_id;
+        const adUnitId = "ca-app-pub-2663317592266647/6786418943";
         return (
             <BannerAd
                 unitId={adUnitId}
@@ -1002,7 +1002,7 @@ export default class Deneme extends Component<Props, FonGenelBilgiState> {
                 }}
                 onAdClosed={() => null}
                 onAdLoaded={() => null}
-                onAdFailedToLoad={() => null}
+                onAdFailedToLoad={(error) => console.log(error)}
                 onAdLeftApplication={() => null}
                 onAdOpened={() => null}
             />
