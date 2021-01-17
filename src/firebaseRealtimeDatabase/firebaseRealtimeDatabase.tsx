@@ -20,7 +20,7 @@ if (!firebase.apps.length) {
     firebase.initializeApp(firebaseConfig);
 }
 
-export const addFunInfo = (id: string, fundName: string, fundPurchaseValue: number, fundCount: number, userId: string, portfoyId: string, createdDate: Date, updatedDate: Date, isActive: Boolean) => {
+export const addFundInfo = (id: string, fundName: string, fundPurchaseValue: number, fundCount: number, userId: string, portfoyId: string, createdDate: Date, updatedDate: Date, isActive: Boolean) => {
     return new Promise(function (resolve, reject) {
         let key: string;
         if (id != null) {
@@ -122,9 +122,9 @@ export const addPortfoy = (userId: string, portfoyId: string, portfoyName: strin
     });
 }
 
-export const deleteAllPortfoyFundsInfo = (userId: string, portfoyId: string) => {
+export const deletePortfoy = (userId: string, portfoyId: string) => {
     firebase.app().database(db)
-        .ref("fundValues/" + userId + "/" + portfoyId + "-PRTFY")
+        .ref("fundValues/" + userId + "/" + portfoyId)
         .remove()
         .then(() => {
             console.log("basarılı");
@@ -145,27 +145,29 @@ export const deleteAllPortfoyFundsInfo = (userId: string, portfoyId: string) => 
         });
 }
 
-export const deleteFundInfo = (userId: string, portfoyId: string, fundId: string) => {
-    firebase.app().database(db)
-        .ref("fundValues/" + userId + "/" + portfoyId + "/" + fundId + "-FUND")
-        .remove()
-        .then(() => {
-            console.log("basarılı");
-        })
-        .catch(error => {
-            var errorCode = error.code;
-            var errorMessage = error.message;
-            Alert.alert(
-                //title
-                '',
-                //body
-                String(error.message),
-                [
-                    { text: "Tamam" },
-                ],
-                { cancelable: true }
-            );
-        });
+export const deleteFundInfo = (userId: string, portfoyId: string, fundIds: string[]) => {
+    fundIds.forEach(fundId => {
+        firebase.app().database(db)
+            .ref("fundValues/" + userId + "/" + portfoyId + "/" + fundId)
+            .remove()
+            .then(() => {
+                console.log("basarılı");
+            })
+            .catch(error => {
+                var errorCode = error.code;
+                var errorMessage = error.message;
+                Alert.alert(
+                    //title
+                    '',
+                    //body
+                    String(error.message),
+                    [
+                        { text: "Tamam" },
+                    ],
+                    { cancelable: true }
+                );
+            });
+    })
 }
 
 export const fetchPortfoyDataFirebase = (userId: string) => {

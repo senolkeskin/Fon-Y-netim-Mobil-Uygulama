@@ -5,22 +5,18 @@ import {
     KeyboardAvoidingView,
     Platform,
     StatusBar,
-    Dimensions,
     FlatList,
+    ActivityIndicator,
 } from "react-native";
 import { NavigationScreenProp, NavigationState, } from "react-navigation";
-import { Formik } from "formik";
-import * as Yup from "yup";
 import styles from "../styles";
-import Icon from "react-native-vector-icons/Ionicons";
-import RNPickerSelect from 'react-native-picker-select';
-import { Input, CheckBox, SearchBar } from "react-native-elements";
-import { LineChart } from "react-native-chart-kit";
+import { Input } from "react-native-elements";
 import axios from "axios";
-import { FonIcerikleri, FonTurleri, Gunler, GunSayisi } from "../constants/enums"
+import { FonIcerikleri, FonTurleri, GunSayisi } from "../constants/enums"
 import { TouchableOpacity } from "react-native-gesture-handler";
 import DropDownPicker from "react-native-dropdown-picker";
 import AsyncStorage from "@react-native-community/async-storage"
+import { colors } from "../constants/colors";
 
 interface Props {
     navigation: NavigationScreenProp<NavigationState>;
@@ -94,9 +90,9 @@ interface FonGenelBilgiState {
     listingData: FonModel[];
     noData?: boolean;
     country?: any;
-    isloading?: boolean;
+    isLoading?: boolean;
     dropDownPickerItems: any;
-    dropDownPickerItemsForContains:any;
+    dropDownPickerItemsForContains: any;
 }
 
 export default class FonGenelBilgi extends Component<Props, FonGenelBilgiState> {
@@ -127,9 +123,9 @@ export default class FonGenelBilgi extends Component<Props, FonGenelBilgiState> 
             KarmaFon: [],
             GumusFonu: [],
             listingData: [],
-            isloading: true,
+            isLoading: false,
             dropDownPickerItems: [],
-            dropDownPickerItemsForContains:[],
+            dropDownPickerItemsForContains: [],
         };
     }
 
@@ -292,10 +288,10 @@ export default class FonGenelBilgi extends Component<Props, FonGenelBilgiState> 
             var dropDownPickerItemsForContains = [
                 { label: "Tümü", value: "Tümü" },
                 { label: FonIcerikleri.DevletTahvili, value: FonIcerikleri.DevletTahvili },
-                { label: FonIcerikleri.BankaBonosu, value: FonIcerikleri.BankaBonosu},
-                { label: FonIcerikleri.Diger, value: FonIcerikleri.Diger},
-                { label: FonIcerikleri.DovizOdemeliBono, value: FonIcerikleri.DovizOdemeliBono},
-                { label: FonIcerikleri.DovizOdemeliTahvil, value: FonIcerikleri.DovizOdemeliTahvil},
+                { label: FonIcerikleri.BankaBonosu, value: FonIcerikleri.BankaBonosu },
+                { label: FonIcerikleri.Diger, value: FonIcerikleri.Diger },
+                { label: FonIcerikleri.DovizOdemeliBono, value: FonIcerikleri.DovizOdemeliBono },
+                { label: FonIcerikleri.DovizOdemeliTahvil, value: FonIcerikleri.DovizOdemeliTahvil },
                 { label: FonIcerikleri.Eurobond, value: FonIcerikleri.Eurobond },
                 { label: FonIcerikleri.FinansmanBonosu, value: FonIcerikleri.FinansmanBonosu },
                 { label: FonIcerikleri.FonKatilmaBelgesi, value: FonIcerikleri.FonKatilmaBelgesi },
@@ -315,7 +311,7 @@ export default class FonGenelBilgi extends Component<Props, FonGenelBilgiState> 
                 { label: FonIcerikleri.YabanciBorclanmaAraci, value: FonIcerikleri.YabanciBorclanmaAraci },
                 { label: FonIcerikleri.YabanciHisseSenedi, value: FonIcerikleri.YabanciHisseSenedi },
                 { label: FonIcerikleri.YabanciMenkulKiymet, value: FonIcerikleri.YabanciMenkulKiymet },]
-                
+
 
             this.allFundTypeDistribution(KarmaVeDegiskenFonlarToday, KarmaVeDegiskenFonlarOneMonthAgo);
 
@@ -337,8 +333,8 @@ export default class FonGenelBilgi extends Component<Props, FonGenelBilgiState> 
                 KarmaFon: KarmaFon,
                 GumusFonu: GumusFonu,
                 dropDownPickerItems: dropDownPickerItems,
-                dropDownPickerItemsForContains:dropDownPickerItemsForContains,
-            }, () => this.setState({ isloading: false }))
+                dropDownPickerItemsForContains: dropDownPickerItemsForContains,
+            }, () => this.setState({ isLoading: true }))
         }
     }
     searchText = (e: string) => {
@@ -630,23 +626,39 @@ export default class FonGenelBilgi extends Component<Props, FonGenelBilgiState> 
         }
     }
 
+    renderLoading() {
+        if (!this.state.isLoading) {
+            return (
+                <View style={styles.loadingStyle}>
+                    <ActivityIndicator
+                        size='large'
+                        color="#7FB3D5"
+                    />
+                </View>
+            )
+        }
+        else {
+            return null;
+        }
+    }
+
     render() {
         return (
-            <View style={{ backgroundColor: "#363E58", flex: 1 }}>
-                <StatusBar backgroundColor="#363E58" />
+            <View style={{ backgroundColor: colors.backgroundColor, flex: 1 }}>
+                <StatusBar backgroundColor={"#1C212F"} />
                 <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} >
-                    <View style={{ backgroundColor: "#3C435A" }}>
+                    <View style={{ backgroundColor: colors.backgroundColor }}>
                         <View style={{ height: 55 }}>
                             <Input
                                 autoCapitalize='none'
                                 autoCorrect={false}
                                 onChangeText={this.searchText}
                                 placeholder='Arama'
-                                placeholderTextColor='gray'
+                                placeholderTextColor='#B3B6B7'
                                 style={{
-                                    borderColor: '#3C435A',
-                                    backgroundColor: '#3C435A',
-                                    color: '#CFD5E8'
+                                    borderColor: colors.backgroundColor,
+                                    backgroundColor: colors.backgroundColor,
+                                    color: colors.White
                                 }}
                             />
                         </View>
@@ -655,11 +667,11 @@ export default class FonGenelBilgi extends Component<Props, FonGenelBilgiState> 
                             <DropDownPicker
                                 items={this.state.dropDownPickerItems}
                                 containerStyle={{ height: 40 }}
-                                style={{ backgroundColor: '#363E58' }}
+                                style={{ backgroundColor: colors.backgroundColor }}
                                 itemStyle={{
-                                    justifyContent: 'flex-start', backgroundColor: '#363E58'
+                                    justifyContent: 'flex-start', backgroundColor: colors.backgroundColor
                                 }}
-                                dropDownStyle={{ backgroundColor: '#363E58' }}
+                                dropDownStyle={{ backgroundColor: colors.backgroundColor }}
                                 onChangeItem={item => this.dropDownItemSelect(item.value)}
                                 placeholder={"Fon Türü Seçiniz (SPK'dan alınan fon türleri)"}
                                 labelStyle={{
@@ -675,11 +687,11 @@ export default class FonGenelBilgi extends Component<Props, FonGenelBilgiState> 
                             <DropDownPicker
                                 items={this.state.dropDownPickerItemsForContains}
                                 containerStyle={{ height: 40 }}
-                                style={{ backgroundColor: '#363E58' }}
+                                style={{ backgroundColor: colors.backgroundColor }}
                                 itemStyle={{
-                                    justifyContent: 'flex-start', backgroundColor: '#363E58'
+                                    justifyContent: 'flex-start', backgroundColor: colors.backgroundColor
                                 }}
-                                dropDownStyle={{ backgroundColor: '#363E58' }}
+                                dropDownStyle={{ backgroundColor: colors.backgroundColor }}
                                 onChangeItem={item => this.dropDownItemSelectForContains(item.value)}
                                 placeholder={"Fon İçeriği Seçiniz"}
                                 labelStyle={{
@@ -691,12 +703,12 @@ export default class FonGenelBilgi extends Component<Props, FonGenelBilgiState> 
                             />
                         </View>
 
-                        {!this.state.isloading ? <FlatList
-                            style={{ backgroundColor: "#363E58" }}
+                        {this.state.isLoading ? <FlatList
+                            style={{ backgroundColor: colors.backgroundColor }}
                             contentContainerStyle={{ paddingBottom: 195 }}
                             data={this.state.listingData}
                             renderItem={({ item }) => (
-                                <View style={{ backgroundColor: "#363E58" }}>
+                                <View style={{ backgroundColor: colors.backgroundColor }}>
                                     <TouchableOpacity onPress={() => this.props.navigation.navigate("Fon Detay", { fundItem: item })}>
                                         <View style={styles.container}>
                                             <View style={styles.row_cell1}>
@@ -720,10 +732,11 @@ export default class FonGenelBilgi extends Component<Props, FonGenelBilgiState> 
 
                                     </TouchableOpacity>
                                 </View>)}
-                            keyExtractor={(item, index) => String(index)}
+                            keyExtractor={(index) => String(index)}
                         /> : null}
                     </View>
                 </KeyboardAvoidingView>
+                {this.renderLoading()}
             </View >
         );
     }

@@ -26,7 +26,7 @@ import { colors } from "../constants/colors";
 import { Container, Tab, TabHeading, Tabs } from "native-base";
 import Svg from "react-native-svg"
 
-import { addFunInfo, addPortfoy, fetchPortfoyDataFirebase, fetchPortfoyFundsDataFirebase } from "../firebaseRealtimeDatabase/firebaseRealtimeDatabase"
+import { addFundInfo, addPortfoy, fetchPortfoyDataFirebase, fetchPortfoyFundsDataFirebase } from "../firebaseRealtimeDatabase/firebaseRealtimeDatabase"
 import { AuthContext } from "../navigation/Auth";
 import DropDownPicker from "react-native-dropdown-picker";
 import Ionicons from "react-native-vector-icons/Ionicons";
@@ -165,7 +165,7 @@ export default class Deneme extends Component<Props, FonGenelBilgiState> {
 
     addFund() {
         if (this.state.fonKodu != "" || this.state.fonKodu != null || this.state.fonAdet != "" || this.state.fonAdet != null || this.state.fonDegeri != "" || this.state.fonDegeri != null) {
-            addFunInfo(null, this.state.fonKodu, Number(this.state.fonDegeri), Number(this.state.fonAdet), this.state.userInfo.uid, this.props.route.params.portfoyId, new Date(), new Date(), true);
+            addFundInfo(null, this.state.fonKodu, Number(this.state.fonDegeri), Number(this.state.fonAdet), this.state.userInfo.uid, this.props.route.params.portfoyId, new Date(), new Date(), true);
         }
         this.props.navigation.goBack();
         this.props.route.params.fonEkle();
@@ -219,7 +219,7 @@ export default class Deneme extends Component<Props, FonGenelBilgiState> {
     render() {
         return (
             <View style={{ backgroundColor: colors.backgroundColor, flex: 1 }}>
-                <StatusBar backgroundColor="#363E58" />
+                <StatusBar backgroundColor={"#1C212F"} />
                 <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} style={{ backgroundColor: colors.backgroundColor }}>
                     {this.state.isSelectedFund ?
                         <View style={{ marginTop: 10 }}>
@@ -311,11 +311,11 @@ export default class Deneme extends Component<Props, FonGenelBilgiState> {
                                 />
                             </View>
                             <FlatList
-                                style={{ backgroundColor: "#363E58" }}
+                                style={{ backgroundColor: colors.backgroundColor }}
                                 contentContainerStyle={{ paddingBottom: 65 }}
                                 data={this.state.listingData}
                                 renderItem={({ item }) => (
-                                    <View style={{ backgroundColor: "#363E58" }}>
+                                    <View style={{ backgroundColor: colors.backgroundColor }}>
                                         <TouchableOpacity onPress={() => this.getFundData(item.Kodu)}>
                                             <View style={styles.container}>
                                                 <Text style={{ color: colors.White, fontSize: 12, fontWeight: "bold" }}>
@@ -324,7 +324,7 @@ export default class Deneme extends Component<Props, FonGenelBilgiState> {
                                             </View>
                                         </TouchableOpacity>
                                     </View>)}
-                                keyExtractor={(item, index) => String(index)}
+                                keyExtractor={(index) => String(index)}
                             />
                         </View>}
                 </KeyboardAvoidingView>

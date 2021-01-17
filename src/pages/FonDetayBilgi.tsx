@@ -435,7 +435,7 @@ export default class FonDetayBilgi extends Component<Props, FonGenelBilgiState> 
 
         return (
             <View style={{ backgroundColor: colors.backgroundColor, flex: 1 }}>
-                <StatusBar backgroundColor="#363E58" />
+                <StatusBar backgroundColor={"#1C212F"} />
 
                 <Container>
                     <Tabs tabBarPosition='bottom' tabContainerStyle={{ height: 1 }}

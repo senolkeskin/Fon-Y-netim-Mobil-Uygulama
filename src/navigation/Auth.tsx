@@ -93,7 +93,21 @@ export const AuthProvider = ({ children }) => {
         },
         logout: async () => {
           try {
-            await auth().signOut();
+
+            Alert.alert(
+              //title
+              'Çıkış Yapılıyor',
+              //body
+              String("Uygulamadan çıkış yapmak istiyor musunuz?"),
+              [
+                { text: "Evet", onPress: async () => await auth().signOut() },
+                { text: "Hayır" },
+
+              ],
+              { cancelable: true }
+            );
+
+            
           } catch (e) {
             console.log(e);
           }

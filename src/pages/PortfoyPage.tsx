@@ -8,6 +8,9 @@ import {
     Dimensions,
     FlatList,
     ScrollView,
+    ListRenderItemInfo,
+    Alert,
+    ActivityIndicator,
 } from "react-native";
 import { NavigationScreenProp, NavigationState, } from "react-navigation";
 import styles from "../styles";
@@ -19,16 +22,19 @@ import axios from "axios";
 import { FonIcerikleri, FonTurleri, Gunler, GunSayisi } from "../constants/enums"
 import { TouchableOpacity } from "react-native-gesture-handler";
 import AsyncStorage from "@react-native-community/async-storage";
-import { VictoryAxis, VictoryBar, VictoryChart, VictoryLabel, VictoryLine, VictoryPie, VictoryTheme, } from "victory-native";
+import { VictoryAxis, VictoryBar, VictoryChart, VictoryLabel, VictoryLine, VictoryPie, VictoryTheme, VictoryTooltip, VictoryVoronoiContainer, } from "victory-native";
 import { colors } from "../constants/colors";
-import { Container, Tab, TabHeading, Tabs } from "native-base";
+import { Container, SwipeRow, Tab, TabHeading, Tabs } from "native-base";
 import Svg from "react-native-svg"
 
-import { addFunInfo, addPortfoy, fetchPortfoyDataFirebase, fetchPortfoyFundsDataFirebase } from "../firebaseRealtimeDatabase/firebaseRealtimeDatabase"
+import { addFundInfo, addPortfoy, deleteFundInfo, deletePortfoy, fetchPortfoyDataFirebase, fetchPortfoyFundsDataFirebase } from "../firebaseRealtimeDatabase/firebaseRealtimeDatabase"
 import { AuthContext } from "../navigation/Auth";
 import DropDownPicker from "react-native-dropdown-picker";
 import Ionicons from "react-native-vector-icons/Ionicons";
-import { color } from "react-native-reanimated";
+import { RowMap, SwipeListView } from 'react-native-swipe-list-view';
+import SwipeUpDown from 'react-native-swipe-up-down';
+
+
 
 const screenWidth = Dimensions.get("window").width;
 
@@ -75,6 +81,14 @@ interface FonModel {
     GunlukArtisYuzdesi?: number;
     AlinanFonlar?: FirebaseFonModel[];
     ortalamaMaliyet?: number;
+    toplamAlinanLot?: number;
+    fundIds: string[];
+    portfoyId: string;
+    toplamFiyat?: number;
+    toplamOdenenPara?: number;
+    toplamArtisYuzdesi?: number;
+    toplamBugunkuDeger?: number;
+    toplamDunkuDeger?: number;
 }
 
 interface Fund {
@@ -115,6 +129,18 @@ interface FonGenelBilgiState {
     portfoylerDropDownPicker: any[],
     selectedPortfoy: FirebasePortfoyModel,
     fundItemToday: FonModel[],
+    iconReverse: boolean,
+    colorsPackage: string[],
+    dataVictoryLineChart: any[];
+    portfoyeToplamHarcananPara: number;
+    portfoyunSuankiDegeri: number;
+    portfoyunDunkuDegeri: number;
+    portfoyunGunlukArtisYuzdesi: number;
+    portfoyunGenelArtisYuzdesi: number;
+    portfoyGunlukArtis: number;
+    fundItemPortfoy: FonModel[],
+
+
 }
 
 export default class Deneme extends Component<Props, FonGenelBilgiState> {
@@ -136,6 +162,16 @@ export default class Deneme extends Component<Props, FonGenelBilgiState> {
             portfoylerDropDownPicker: [],
             selectedPortfoy: null,
             fundItemToday: [],
+            iconReverse: false,
+            colorsPackage: [],
+            dataVictoryLineChart: [],
+            portfoyeToplamHarcananPara: 0,
+            portfoyunSuankiDegeri: 0,
+            portfoyunDunkuDegeri: 0,
+            portfoyunGunlukArtisYuzdesi: 0,
+            portfoyunGenelArtisYuzdesi: 0,
+            portfoyGunlukArtis: 0,
+            fundItemPortfoy: [],
         };
     }
 
@@ -163,12 +199,42 @@ export default class Deneme extends Component<Props, FonGenelBilgiState> {
                         portfoylerDropDownPicker.push({ value: element._snapshot.value.portfoyId, label: element._snapshot.value.portfoyName });
                         portfoyler.push(portfoy);
                     })
+
+                    var colorsPackage: string[] = [];
+                    colorsPackage.push(colors.DevletTahvili);
+                    colorsPackage.push(colors.BankaBonosu);
+                    colorsPackage.push(colors.Diger);
+                    colorsPackage.push(colors.DovizOdemeliBono);
+                    colorsPackage.push(colors.DovizOdemeliTahvil);
+                    colorsPackage.push(colors.Eurobond);
+                    colorsPackage.push(colors.FinansmanBonosu);
+                    colorsPackage.push(colors.FonKatilmaBelgesi);
+                    colorsPackage.push(colors.GayrimenkulSertifikasi);
+                    colorsPackage.push(colors.HazineBonosu);
+                    colorsPackage.push(colors.HisseSenedi);
+                    colorsPackage.push(colors.KamuDisBorclanmaAraci);
+                    colorsPackage.push(colors.KamuKiraSertifikasi);
+                    colorsPackage.push(colors.KatilimHesabi);
+                    colorsPackage.push(colors.KiymetliMaden);
+                    colorsPackage.push(colors.OzelSektorKiraSertifikasi);
+                    colorsPackage.push(colors.OzelSektorTahvili);
+                    colorsPackage.push(colors.TPP);
+                    colorsPackage.push(colors.TersRepo);
+                    colorsPackage.push(colors.TurevAraci);
+                    colorsPackage.push(colors.VadeliMevduat);
+                    colorsPackage.push(colors.VarligaDayaliMenkulKiymet);
+                    colorsPackage.push(colors.YabanciBorclanmaAraci);
+                    colorsPackage.push(colors.YabanciHisseSenedi);
+                    colorsPackage.push(colors.YabanciMenkulKiymet);
+
+
                     this.setState({
                         portfoyler: portfoyler,
                         portfoylerDropDownPicker: portfoylerDropDownPicker,
                         defaultDropDownPickerItem: portfoyler[portfoyler.length - 1].portfoyId,
                         selectedPortfoy: portfoyler[portfoyler.length - 1],
                         isLoading: false,
+                        colorsPackage: colorsPackage,
                     })
 
 
@@ -193,12 +259,13 @@ export default class Deneme extends Component<Props, FonGenelBilgiState> {
 
 
                 });
-
             }
         } catch (e) {
             console.log(e);
         }
     }
+
+    swipeUpDownRef: any = null;
 
 
     fetchFunds = async (firebaseFonlar: FirebaseFonModel[]) => {
@@ -213,10 +280,14 @@ export default class Deneme extends Component<Props, FonGenelBilgiState> {
             var bitisDate = new Date();
             var baslangicDate = new Date();
             baslangicDate.setDate(bitisDate.getDate() - 60);
+            var selectedPortfoyCreatedDate = new Date(this.state.selectedPortfoy.createdDate);
+            baslangicDate = selectedPortfoyCreatedDate < baslangicDate ? selectedPortfoyCreatedDate : baslangicDate;
+
             const fundResponse = await axios.get("https://ws.spk.gov.tr/PortfolioValues/api/PortfoyDegerleri/" + apiText + "/1/" + this.getFormattedDateForApi(baslangicDate) + "/" + this.getFormattedDateForApi(bitisDate));
 
 
             var funds: any[] = [];
+            var dataVictory: any[] = [];
             if (fundResponse.status == 200 && fundResponse.data != null && fundResponse.data.length > 0) {
                 var fundItemToday: FonModel[] = [];
                 var responseFunds: FonModel[] = fundResponse.data;
@@ -273,13 +344,8 @@ export default class Deneme extends Component<Props, FonGenelBilgiState> {
 
                         if (currFundValue != undefined) {
                             currFundValue.AlinanFonlar = [];
+                            currFundValue.fundIds = [];
                             fundItemToday.push(currFundValue);
-
-                            //analiz için
-                            // if (currFundValue.FonTuru == FonTurleri.KarmaFon || currFundValue.FonTuru == FonTurleri.DegiskenFon) {
-                            //     KarmaVeDegiskenFonlarToday.push(currFundValue);
-                            //     KarmaVeDegiskenFonlarOneMonthAgo.push(item);
-                            // }
                         }
                     }
                 })
@@ -290,6 +356,8 @@ export default class Deneme extends Component<Props, FonGenelBilgiState> {
                         item.createdDate = new Date(item.createdDate);
                         item.dateView = this.getFormattedDateForView(item.createdDate);
                         fundItemToday[index].AlinanFonlar.push(item);
+                        fundItemToday[index].fundIds.push(item.fundId);
+                        fundItemToday[index].portfoyId = item.portfoyId;
                     }
                 })
 
@@ -302,13 +370,120 @@ export default class Deneme extends Component<Props, FonGenelBilgiState> {
                     })
                     var ortalamaMaliyet = toplamOdenenPara / toplamAlinanAdet;
                     fon.ortalamaMaliyet = ortalamaMaliyet;
+                    fon.toplamAlinanLot = toplamAlinanAdet;
+                    fon.toplamOdenenPara = toplamOdenenPara;
                 })
+
+                responseFunds.forEach((item: FonModel) => {
+                    var date = new Date(item.Tarih.toString());
+                    var firebaseFon = firebaseFonlar.find(y => y.fundName == item.FonKodu);
+                    if (selectedPortfoyCreatedDate <= date && firebaseFon.createdDate <= date) {
+                        var gunlukFon = fundItemToday.find(x => x.FonKodu == item.FonKodu);
+                        var gunlukParaHareketi = gunlukFon.toplamAlinanLot * item.BirimPayDegeri;
+
+
+
+                        var dataVictoryIndex = dataVictory.findIndex(label => label.x == this.getFormattedDateForView(date));
+                        if (dataVictoryIndex >= 0) {
+                            dataVictory[dataVictoryIndex].y += gunlukParaHareketi;
+                        }
+                        else {
+                            dataVictory.push({ x: this.getFormattedDateForView(date), y: gunlukParaHareketi });
+                        }
+
+                    }
+
+                })
+
+                var portfoyunDunkuDegeri = 0;
+                var portfoyunSuankiDegeri = 0;
+                var portfoyeToplamHarcananPara = 0;
+                var portfoyGunlukArtis = 0;
+                var portfoyKontrolFunds: any[] = [];
+                var fundItemPortfoy: FonModel[] = [];
+                responseFunds.forEach((item: FonModel) => {
+                    if ((!portfoyKontrolFunds.some(x => x == item.FonKodu) || portfoyKontrolFunds.length == 0) && item.FonTuru != FonTurleri.KorumaAmacliFon && item.FonTuru != FonTurleri.GumusFonu) {
+                        var firebaseFon = firebaseFonlar.find(y => y.fundName == item.FonKodu);
+                        portfoyKontrolFunds.push(item.FonKodu);
+                        var gecmisleOlanFarkHesaplanacaMi = true;
+                        var currDate = new Date();
+                        var currDateString = this.getFormattedDateForListing(currDate);
+                        var currFundValue = responseFunds.find((x: FonModel) => x.Tarih.toString() == currDateString && x.FonKodu == item.FonKodu);
+                        var currIterator = 0;
+                        while (currFundValue == undefined && currIterator < GunSayisi.onBesGun) {
+                            currDate.setDate(currDate.getDate() - 1);
+                            if (currDate == firebaseFon.createdDate) {
+                                gecmisleOlanFarkHesaplanacaMi = false;
+                                break;
+                            }
+                            currDateString = this.getFormattedDateForListing(currDate);
+                            currFundValue = responseFunds.find((x: FonModel) => x.Tarih.toString() == currDateString && x.FonKodu == item.FonKodu);
+                            currIterator++;
+                        }
+
+                        if (currDate < firebaseFon.createdDate) {
+                            gecmisleOlanFarkHesaplanacaMi = false;
+                        }
+
+                        currDate.setDate(currDate.getDate() - 1);
+                        var preDateString = this.getFormattedDateForListing(currDate);
+                        var preFundValue = responseFunds.find((x: FonModel) => x.Tarih.toString() == preDateString && x.FonKodu == item.FonKodu);
+                        var preIterator = 0;
+                        while (preFundValue == undefined && preIterator < GunSayisi.onBesGun) {
+                            currDate.setDate(currDate.getDate() - 1);
+                            if (currDate < firebaseFon.createdDate) {
+                                gecmisleOlanFarkHesaplanacaMi = false;
+                                break;
+                            }
+                            preDateString = this.getFormattedDateForListing(currDate);
+                            preFundValue = responseFunds.find((x: FonModel) => x.Tarih.toString() == preDateString && x.FonKodu == item.FonKodu);
+                            preIterator++;
+                        }
+
+                        if (gecmisleOlanFarkHesaplanacaMi) {
+                            portfoyunSuankiDegeri += currFundValue.toplamAlinanLot * currFundValue.BirimPayDegeri;
+                            portfoyunDunkuDegeri += currFundValue.toplamAlinanLot * preFundValue.BirimPayDegeri;
+                            portfoyGunlukArtis += currFundValue.toplamAlinanLot * currFundValue.BirimPayDegeri - currFundValue.toplamAlinanLot * preFundValue.BirimPayDegeri;
+                            currFundValue.toplamBugunkuDeger = currFundValue.toplamAlinanLot * currFundValue.BirimPayDegeri;
+                            currFundValue.toplamDunkuDeger = currFundValue.toplamAlinanLot * preFundValue.BirimPayDegeri;
+                            fundItemPortfoy.push(currFundValue);
+                        }
+                        else {
+                            portfoyunSuankiDegeri += currFundValue.toplamAlinanLot * currFundValue.BirimPayDegeri;
+                            currFundValue.toplamBugunkuDeger = currFundValue.toplamAlinanLot * currFundValue.BirimPayDegeri;
+                            currFundValue.toplamDunkuDeger = 0;
+                            fundItemPortfoy.push(currFundValue);
+                        }
+                        portfoyeToplamHarcananPara += currFundValue.toplamAlinanLot * currFundValue.ortalamaMaliyet;
+                    }
+                })
+
+
+                var portfoyunGunlukArtisYuzdesi = 0;
+                var dunkuFiyat = 0;
+                var suankiFiyat = 0;
+                fundItemPortfoy.forEach(item => {
+                    if (item.toplamDunkuDeger != 0) {
+                        dunkuFiyat += item.toplamDunkuDeger;
+                        suankiFiyat += item.toplamBugunkuDeger;
+                    }
+                })
+
+                var portfoyunGunlukArtisYuzdesi = dunkuFiyat != 0 ? ((suankiFiyat - dunkuFiyat) / dunkuFiyat) * 100 : 0;
+
                 this.setState({
                     fundItemToday: fundItemToday,
+                    dataVictoryLineChart: dataVictory,
+                    portfoyunDunkuDegeri: portfoyunDunkuDegeri,
+                    portfoyunSuankiDegeri: portfoyunSuankiDegeri,
+                    portfoyGunlukArtis: portfoyGunlukArtis,
+                    portfoyeToplamHarcananPara: portfoyeToplamHarcananPara,
+                    fundItemPortfoy: fundItemPortfoy,
+                    portfoyunGunlukArtisYuzdesi: portfoyunGunlukArtisYuzdesi,
                 })
             }
         }
-        else{
+        else {
             this.setState({
                 fundItemToday: [],
             })
@@ -357,31 +532,45 @@ export default class Deneme extends Component<Props, FonGenelBilgiState> {
                 defaultDropDownPickerItem: portfoyler[portfoyler.length - 1].portfoyId,
                 selectedPortfoy: portfoyler[portfoyler.length - 1],
                 isLoading: false,
+                fundItemToday:[]
             })
         });
     }
 
     addFon = async () => {
-        fetchPortfoyFundsDataFirebase(this.state.userInfo.uid, this.state.defaultDropDownPickerItem).then(result => {
-            var firebaseFonlar: FirebaseFonModel[] = []
-            result.forEach(element => {
-                firebaseFonlar.push(element._snapshot.value);
-            })
+        this.listeyiYenidenYukle();
+    }
 
-            //sondan beş eleman fon değil portföyün genel bilgileri
-            firebaseFonlar.pop();
-            firebaseFonlar.pop();
-            firebaseFonlar.pop();
-            firebaseFonlar.pop();
-            firebaseFonlar.pop();
+    deleteFon = async (portfoyId: string, fundIds: string[]) => {
+        Alert.alert(
+            "Silme İşlemi",
+            "Fonu Silmek İstiyor Musunuz?",
+            [
+                {
+                    text: "Vazgeç",
+                    onPress: () => console.log("Cancel Pressed"),
+                    style: "cancel"
+                },
+                { text: "Sil", onPress: () => { deleteFundInfo(this.state.userInfo.uid, portfoyId, fundIds); this.listeyiYenidenYukle() } }
+            ],
+            { cancelable: false }
+        );
+    }
 
-            this.fetchFunds(firebaseFonlar);
-
-            this.setState({
-                firebaseFonlar: firebaseFonlar,
-                isLoading: false,
-            })
-        })
+    deletePortfoy = async () => {
+        Alert.alert(
+            "Silme İşlemi",
+            "Portföyü Silmek İstiyor Musunuz? \nPortföyü silerseniz içerisindeki fonlar da silinir.",
+            [
+                {
+                    text: "Vazgeç",
+                    onPress: () => console.log("Cancel Pressed"),
+                    style: "cancel"
+                },
+                { text: "Sil", onPress: () => { deletePortfoy(this.state.userInfo.uid, this.state.selectedPortfoy.portfoyId,); this.dropDownYenidenYukle() } }
+            ],
+            { cancelable: false }
+        );
     }
 
     dropDownItemSelect = async (value: any) => {
@@ -409,53 +598,462 @@ export default class Deneme extends Component<Props, FonGenelBilgiState> {
                 isLoading: false,
             })
         })
+
+    }
+
+    swipeContainer(data: ListRenderItemInfo<FonModel>, rowMap: RowMap<FonModel>) {
+        return (
+            <View style={styles.containerPortfoySwipe}>
+
+                <View style={{ flex: 1, alignContent: "flex-start" }}>
+                    <TouchableOpacity style={{ width: "100%", height: "95%", backgroundColor: colors.greenAdd, justifyContent: "center" }}
+                        onPress={() => { rowMap[data.index].closeRow(); this.props.navigation.navigate("Fon Detay", { fundItem: data.item }) }}>
+                        <Ionicons name={"bar-chart-sharp"} size={30} color={colors.White} style={{ marginLeft: 30 }} />
+                    </TouchableOpacity>
+                </View>
+
+                <View style={{ flex: 1, alignContent: "flex-end" }}>
+                    <TouchableOpacity style={{ width: "100%", height: "95%", backgroundColor: colors.deleteButtonColor, justifyContent: "center" }}
+                        onPress={() => { rowMap[data.index].closeRow(); this.deleteFon(data.item.portfoyId, data.item.fundIds) }}>
+                        <Ionicons name={"trash-sharp"} size={30} color={colors.White} style={{ marginLeft: 125 }} />
+                    </TouchableOpacity>
+                </View>
+            </View>
+        )
+    }
+
+    listeyiYenidenYukle() {
+        fetchPortfoyFundsDataFirebase(this.state.userInfo.uid, this.state.defaultDropDownPickerItem).then(result => {
+            var firebaseFonlar: FirebaseFonModel[] = []
+            result.forEach(element => {
+                firebaseFonlar.push(element._snapshot.value);
+            })
+
+            //sondan beş eleman fon değil portföyün genel bilgileri
+            firebaseFonlar.pop();
+            firebaseFonlar.pop();
+            firebaseFonlar.pop();
+            firebaseFonlar.pop();
+            firebaseFonlar.pop();
+
+            this.fetchFunds(firebaseFonlar);
+
+            this.setState({
+                firebaseFonlar: firebaseFonlar,
+                isLoading: false,
+            })
+
+            //this.fetchLineChartData(this.state.selectedPortfoy,firebaseFonlar);
+        })
+    }
+
+    dropDownYenidenYukle() {
+        fetchPortfoyDataFirebase(this.state.userInfo.uid).then(result => {
+            var portfoyler: FirebasePortfoyModel[] = []
+            var portfoylerDropDownPicker: any[] = []
+            result.forEach(element => {
+                var portfoy: FirebasePortfoyModel = {
+                    portfoyName: element._snapshot.value.portfoyName,
+                    portfoyId: element._snapshot.value.portfoyId,
+                    isActive: element._snapshot.value.isActive,
+                    createdDate: element._snapshot.value.createdDate,
+                    updatedDate: element._snapshot.value.updatedDate,
+
+                };
+                portfoyler.push(portfoy);
+                portfoylerDropDownPicker.push({ value: element._snapshot.value.portfoyId, label: element._snapshot.value.portfoyName });
+            })
+            this.setState({
+                portfoyler: portfoyler,
+                portfoylerDropDownPicker: portfoylerDropDownPicker,
+                defaultDropDownPickerItem: portfoyler[portfoyler.length - 1] ? portfoyler[portfoyler.length - 1].portfoyId : null,
+                selectedPortfoy: portfoyler[portfoyler.length - 1] ? portfoyler[portfoyler.length - 1] : null,
+                isLoading: false,
+                iconReverse: false,
+            })
+        });
+        this.listeyiYenidenYukle();
+
+    }
+
+
+    pieChart(dataVictoryForPieChart: any[], baslik: string) {
+        return (
+            <View>
+                <View style={{ alignItems: "center", justifyContent: "center", padding: 10, borderColor: "white", borderWidth: 1, marginBottom: 10 }}>
+                    <Text style={{ fontSize: 15, textAlign: "center", color: "white" }}>{baslik}</Text>
+                </View>
+                <View style={{ flexDirection: "row" }}>
+                    <View style={{ flex: 5 }}>
+                        <Svg width={screenWidth} height={230} viewBox="80 0 400 400">
+                            <VictoryPie
+                                standalone={false}
+                                //labelRadius={150}
+                                labels={({ datum }) => ''}
+                                style={{
+                                    labels: { fontSize: 10, fill: "white" },
+                                    data: {
+                                        fill: ({ datum }) => datum.l
+                                    }
+                                }}
+                                data={dataVictoryForPieChart}
+                            />
+                        </Svg>
+                    </View>
+                    <View style={{ flex: 4 }}>
+                        {dataVictoryForPieChart.sort((a, b) => b.y - a.y).map(r => <View style={{ margin: 5, flexDirection: "row" }}><View style={{ flex: 0.15 }}><Icon name="square" size={15} color={r.l} /></View><View style={{ flex: 1 }}><Text style={{ color: colors.White, fontSize: 10 }}>{r.x + ": %" + r.y.toFixed(2)}</Text></View></View>)}
+                    </View>
+                </View>
+            </View>
+        )
+    }
+
+    lineChart(dataVictory: any[], baslik: string) {
+        return (
+            <View>
+                <View style={{ alignItems: "center", justifyContent: "center", padding: 10, borderColor: "white", borderWidth: 1, marginBottom: 10 }}>
+                    <Text style={{ fontSize: 15, textAlign: "center", color: "white" }}>{baslik}</Text>
+                </View>
+                <View>
+                    <VictoryChart height={280} width={screenWidth}
+                        containerComponent={
+                            <VictoryVoronoiContainer
+                                voronoiDimension="x"
+                                labels={({ datum }) => Number(datum.y.toFixed(2)).toLocaleString() + "\n" + datum.x}
+                                labelComponent={
+                                    <VictoryTooltip
+                                        cornerRadius={0}
+                                        flyoutStyle={{ fill: colors.victoryTooltipFlyoutStyleColor }}
+                                    />}
+                                activateLabels={false}
+                            />}
+                    >
+                        <VictoryAxis dependentAxis crossAxis
+                            width={screenWidth}
+                            height={400}
+                            theme={VictoryTheme.material}
+                            offsetX={50}
+                            standalone={false}
+                            style={{
+                                axis: { stroke: colors.axisStrokeColor },
+                                axisLabel: { fontSize: 16 },
+                                ticks: { stroke: colors.axisStrokeColor },
+                                tickLabels: { fontSize: 10, fill: colors.axisStrokeColor }
+                            }}
+                        />
+                        <VictoryAxis tickCount={5} style={{
+                            axis: { stroke: colors.axisStrokeColor },
+                            axisLabel: { fontSize: 16 },
+                            ticks: { stroke: colors.axisStrokeColor },
+                            tickLabels: { fontSize: 10, padding: 5, angle: 340, verticalAnchor: 'middle', textAnchor: 'end', fill: colors.axisStrokeColor }
+                        }} />
+                        <VictoryLine
+                            data={dataVictory}
+                            style={{
+                                data: {
+                                    stroke: colors.VictoryLineStrokeColor,
+                                    strokeWidth: ({ active }) => active ? 2 : 1,
+                                },
+                                labels: { fill: colors.VictoryLineStrokeColor }
+                            }}
+                        />
+                    </VictoryChart>
+                </View>
+            </View>
+        )
+    }
+
+    istatistikView() {
+        return (
+            <View style={{ padding: 10, marginBottom: 10 }}>
+                <View style={{ alignItems: "flex-start", flexDirection: "row", borderBottomWidth: 1, borderBottomColor: colors.White }}>
+                    <View style={{ flex: 1 }}>
+                        <Text style={{ color: colors.White, fontSize: 15 }}>{"Dünkü Değer"}</Text>
+                    </View>
+                    <View style={{ flex: 1 }}>
+                        <Text style={{ color: colors.White, fontSize: 15 }}>{"Bugünkü Değer"}</Text>
+                    </View>
+                    <View style={{ flex: 1 }} >
+                        <Text style={{ color: colors.White, fontSize: 15 }}>{"Günlük Artış"}</Text>
+                    </View>
+
+                </View>
+
+                <View style={{ alignItems: "flex-start", flexDirection: "row", marginBottom: 10 }}>
+                    <View style={{ flex: 1 }}>
+                        <Text style={{ color: colors.White, fontSize: 15 }}>{Number(this.state.portfoyunDunkuDegeri.toFixed(2)).toLocaleString() + " TL"}</Text>
+                    </View>
+                    <View style={{ flex: 1 }}>
+                        <Text style={{ color: colors.White, fontSize: 15 }}>{Number(this.state.portfoyunSuankiDegeri.toFixed(2)).toLocaleString() + " TL"}</Text>
+                    </View>
+                    <View style={{ flex: 1 }} >
+                        <Text style={{ color: colors.White, fontSize: 15 }}>{Number(this.state.portfoyGunlukArtis.toFixed(2)).toLocaleString() + " TL" + " (%" + Number(this.state.portfoyunGunlukArtisYuzdesi.toFixed(2)).toLocaleString() + ")"}</Text>
+                    </View>
+
+                </View>
+
+                <View style={{ alignItems: "flex-start", flexDirection: "row", borderBottomWidth: 1, borderBottomColor: colors.White }}>
+                    <View style={{ flex: 1 }}>
+                        <Text style={{ color: colors.White, fontSize: 12 }}>{"Fon Kodu"}</Text>
+                    </View>
+                    <View style={{ flex: 1 }}>
+                        <Text style={{ color: colors.White, fontSize: 12 }}>{"Günlük Artış"}</Text>
+                    </View>
+                    <View style={{ flex: 1 }} >
+                        <Text style={{ color: colors.White, fontSize: 12 }}>{"Genel Artış"}</Text>
+                    </View>
+
+                </View>
+
+                {this.state.fundItemPortfoy.map(fon =>
+                    <View style={{ alignItems: "flex-start", flexDirection: "row" }}>
+                        <View style={{ flex: 1 }}>
+                            <Text style={{ color: colors.White, fontSize: 12 }}>{fon.FonKodu}</Text>
+                        </View>
+                        <View style={{ flex: 1 }}>
+                            <Text style={{ color: colors.White, fontSize: 12 }}>{fon.toplamDunkuDeger != 0 ? Number((fon.toplamBugunkuDeger - fon.toplamDunkuDeger).toFixed(2)).toLocaleString() + " (%" + (Number((((fon.toplamBugunkuDeger - fon.toplamDunkuDeger) / fon.toplamDunkuDeger) * 100).toFixed(2))).toLocaleString() + ")" : "0 (%0)"}</Text>
+                        </View>
+                        <View style={{ flex: 1 }} >
+                            <Text style={{ color: colors.White, fontSize: 12 }}>{Number((fon.toplamBugunkuDeger - fon.toplamOdenenPara).toFixed(2)).toLocaleString() + " (%" + (Number((((fon.toplamBugunkuDeger - fon.toplamOdenenPara) / fon.toplamOdenenPara) * 100).toFixed(2))).toLocaleString() + ")"}</Text>
+                        </View>
+
+                    </View>)}
+
+
+
+                <View style={{ alignItems: "flex-start", flexDirection: "row", borderBottomWidth: 1, borderBottomColor: colors.White, marginTop: 10 }}>
+                    <View style={{ flex: 1 }}>
+                        <Text style={{ color: colors.White, fontSize: 15 }}>{"Başlangıç Değer"}</Text>
+                    </View>
+                    <View style={{ flex: 1 }}>
+                        <Text style={{ color: colors.White, fontSize: 15 }}>{"Toplam Değer"}</Text>
+                    </View>
+                    <View style={{ flex: 1 }}>
+                        <Text style={{ color: colors.White, fontSize: 15 }}>{"Toplam Artış"}</Text>
+                    </View>
+
+                </View>
+
+                <View style={{ alignItems: "flex-start", flexDirection: "row", marginBottom: 10 }}>
+                    <View style={{ flex: 1 }}>
+                        <Text style={{ color: colors.White, fontSize: 15 }}>{Number(this.state.portfoyeToplamHarcananPara.toFixed(2)).toLocaleString() + " TL"}</Text>
+                    </View>
+                    <View style={{ flex: 1 }}>
+                        <Text style={{ color: colors.White, fontSize: 15 }}>{Number(this.state.portfoyunSuankiDegeri.toFixed(2)).toLocaleString() + " TL"}</Text>
+                    </View>
+                    <View style={{ flex: 1 }}>
+                        <Text style={{ color: colors.White, fontSize: 15 }}>{Number((this.state.portfoyunSuankiDegeri - this.state.portfoyeToplamHarcananPara).toFixed(2)).toLocaleString() + " TL" + " (%" + Number((((this.state.portfoyunSuankiDegeri - this.state.portfoyeToplamHarcananPara) / this.state.portfoyeToplamHarcananPara) * 100).toFixed(2)).toLocaleString() + ")"}</Text>
+                    </View>
+
+                </View>
+
+
+
+
+            </View>
+        );
+    }
+
+
+    swipeUpView() {
+
+        var fonDagilim: FonModel[] = this.state.fundItemToday;
+        var dataVictoryForPieChart: any[] = [];
+        var dataVictoryForPieChartFonIcerik: any[] = [];
+        var colorIndex = 0;
+        var genelToplam = 0;
+        var fonIcerikDagilim: FonModel = {
+            BirimPayDegeri: 0,
+            DolasimdakiPaySayisi: 0,
+            FonKodu: "",
+            FonTipi: "",
+            FonTuru: "",
+            FonUnvani: "",
+            Tarih: null,
+            ToplamDeger: 0,
+            YatirimciSayisi: 0,
+            GunlukArtisYuzdesi: 0,
+            DevletTahvili: 0,
+            BankaBonosu: 0,
+            Diger: 0,
+            DovizOdemeliBono: 0,
+            DovizOdemeliTahvil: 0,
+            Eurobond: 0,
+            FinansmanBonosu: 0,
+            FonKatilmaBelgesi: 0,
+            GayrimenkulSertifikasi: 0,
+            HazineBonosu: 0,
+            HisseSenedi: 0,
+            KamuDisBorclanmaAraci: 0,
+            KamuKiraSertifikasi: 0,
+            KatilimHesabi: 0,
+            KiymetliMaden: 0,
+            OzelSektorKiraSertifikasi: 0,
+            OzelSektorTahvili: 0,
+            TPP: 0,
+            TersRepo: 0,
+            TurevAraci: 0,
+            VadeliMevduat: 0,
+            VarligaDayaliMenkulKiymet: 0,
+            YabanciBorclanmaAraci: 0,
+            YabanciHisseSenedi: 0,
+            YabanciMenkulKiymet: 0,
+            fundIds: null,
+            portfoyId: null
+        };
+
+        if (fonDagilim != null || fonDagilim != undefined || fonDagilim != []) {
+            fonDagilim.forEach(fon => {
+                var fonToplamFiyat = 0;
+                fon.AlinanFonlar.forEach(item => {
+                    fonToplamFiyat += item.fundCount * item.fundPurchaseValue;
+                    genelToplam += item.fundCount * item.fundPurchaseValue;
+                })
+
+                dataVictoryForPieChart.push({ x: fon.FonKodu, y: fonToplamFiyat, l: this.state.colorsPackage[colorIndex] });
+                colorIndex++;
+            })
+        }
+
+        dataVictoryForPieChart.forEach(item => {
+            item.y = (item.y / genelToplam);
+            var fon = fonDagilim.find(k => k.FonKodu == item.x);
+
+            fonIcerikDagilim.DevletTahvili += fon.DevletTahvili * item.y;
+            fonIcerikDagilim.BankaBonosu += fon.BankaBonosu * item.y;
+            fonIcerikDagilim.Diger += fon.Diger * item.y;
+            fonIcerikDagilim.DovizOdemeliBono += fon.DovizOdemeliBono * item.y;
+            fonIcerikDagilim.DovizOdemeliTahvil += fon.DovizOdemeliTahvil * item.y;
+            fonIcerikDagilim.Eurobond += fon.Eurobond * item.y;
+            fonIcerikDagilim.FinansmanBonosu += fon.FinansmanBonosu * item.y;
+            fonIcerikDagilim.FonKatilmaBelgesi += fon.FonKatilmaBelgesi * item.y;
+            fonIcerikDagilim.GayrimenkulSertifikasi += fon.GayrimenkulSertifikasi * item.y;
+            fonIcerikDagilim.HazineBonosu += fon.HazineBonosu * item.y;
+            fonIcerikDagilim.HisseSenedi += fon.HisseSenedi * item.y;
+            fonIcerikDagilim.KamuDisBorclanmaAraci += fon.KamuDisBorclanmaAraci * item.y;
+            fonIcerikDagilim.KamuKiraSertifikasi += fon.KamuKiraSertifikasi * item.y;
+            fonIcerikDagilim.KatilimHesabi += fon.KatilimHesabi * item.y;
+            fonIcerikDagilim.KiymetliMaden += fon.KiymetliMaden * item.y;
+            fonIcerikDagilim.OzelSektorKiraSertifikasi += fon.OzelSektorKiraSertifikasi * item.y;
+            fonIcerikDagilim.OzelSektorTahvili += fon.OzelSektorTahvili * item.y;
+            fonIcerikDagilim.TPP += fon.TPP * item.y;
+            fonIcerikDagilim.TersRepo += fon.TersRepo * item.y;
+            fonIcerikDagilim.TurevAraci += fon.TurevAraci * item.y;
+            fonIcerikDagilim.VadeliMevduat += fon.VadeliMevduat * item.y;
+            fonIcerikDagilim.VarligaDayaliMenkulKiymet += fon.VarligaDayaliMenkulKiymet * item.y;
+            fonIcerikDagilim.YabanciBorclanmaAraci += fon.YabanciBorclanmaAraci * item.y;
+            fonIcerikDagilim.YabanciHisseSenedi += fon.YabanciHisseSenedi * item.y;
+            fonIcerikDagilim.YabanciMenkulKiymet += fon.YabanciMenkulKiymet * item.y;
+            item.y = item.y * 100;
+        });
+
+        fonIcerikDagilim.DevletTahvili != 0 ? dataVictoryForPieChartFonIcerik.push({ x: "Devlet Tahvili", y: fonIcerikDagilim.DevletTahvili, l: colors.DevletTahvili }) : null;
+        fonIcerikDagilim.BankaBonosu != 0 ? dataVictoryForPieChartFonIcerik.push({ x: "Banka Bonosu", y: fonIcerikDagilim.BankaBonosu, l: colors.BankaBonosu }) : null;
+        fonIcerikDagilim.Diger != 0 ? dataVictoryForPieChartFonIcerik.push({ x: "Diğer", y: fonIcerikDagilim.Diger, l: colors.Diger }) : null;
+        fonIcerikDagilim.DovizOdemeliBono != 0 ? dataVictoryForPieChartFonIcerik.push({ x: "Döviz Ödemeli Bono", y: fonIcerikDagilim.DovizOdemeliBono, l: colors.DovizOdemeliBono }) : null;
+        fonIcerikDagilim.DovizOdemeliTahvil != 0 ? dataVictoryForPieChartFonIcerik.push({ x: "Döviz Ödemeli Tahvil", y: fonIcerikDagilim.DovizOdemeliTahvil, l: colors.DovizOdemeliTahvil }) : null;
+        fonIcerikDagilim.Eurobond != 0 ? dataVictoryForPieChartFonIcerik.push({ x: "EuroBond", y: fonIcerikDagilim.Eurobond, l: colors.Eurobond }) : null;
+        fonIcerikDagilim.FinansmanBonosu != 0 ? dataVictoryForPieChartFonIcerik.push({ x: "Finansman Bonosu", y: fonIcerikDagilim.FinansmanBonosu, l: colors.FinansmanBonosu }) : null;
+        fonIcerikDagilim.FonKatilmaBelgesi != 0 ? dataVictoryForPieChartFonIcerik.push({ x: "Fon Katılma Belgesi", y: fonIcerikDagilim.FonKatilmaBelgesi, l: colors.FonKatilmaBelgesi }) : null;
+        fonIcerikDagilim.GayrimenkulSertifikasi != 0 ? dataVictoryForPieChartFonIcerik.push({ x: "Gayrimenkul Sertifikası", y: fonIcerikDagilim.GayrimenkulSertifikasi, l: colors.GayrimenkulSertifikasi }) : null;
+        fonIcerikDagilim.HazineBonosu != 0 ? dataVictoryForPieChartFonIcerik.push({ x: "Hazine Bonosu", y: fonIcerikDagilim.HazineBonosu, l: colors.HazineBonosu }) : null;
+        fonIcerikDagilim.HisseSenedi != 0 ? dataVictoryForPieChartFonIcerik.push({ x: "Hisse Senedi", y: fonIcerikDagilim.HisseSenedi, l: colors.HisseSenedi }) : null;
+        fonIcerikDagilim.KamuDisBorclanmaAraci != 0 ? dataVictoryForPieChartFonIcerik.push({ x: "Kamu Dış Borçlanma Aracı", y: fonIcerikDagilim.KamuDisBorclanmaAraci, l: colors.KamuDisBorclanmaAraci }) : null;
+        fonIcerikDagilim.KamuKiraSertifikasi != 0 ? dataVictoryForPieChartFonIcerik.push({ x: "Kamu Kira Sertifikası", y: fonIcerikDagilim.KamuKiraSertifikasi, l: colors.KamuKiraSertifikasi }) : null;
+        fonIcerikDagilim.KatilimHesabi != 0 ? dataVictoryForPieChartFonIcerik.push({ x: "Katılım Hesabı", y: fonIcerikDagilim.KatilimHesabi, l: colors.KatilimHesabi }) : null;
+        fonIcerikDagilim.KiymetliMaden != 0 ? dataVictoryForPieChartFonIcerik.push({ x: "Kıymetli Maden", y: fonIcerikDagilim.KiymetliMaden, l: colors.KiymetliMaden }) : null;
+        fonIcerikDagilim.OzelSektorKiraSertifikasi != 0 ? dataVictoryForPieChartFonIcerik.push({ x: "Özel Sektör Kira Sertifikası", y: fonIcerikDagilim.OzelSektorKiraSertifikasi, l: colors.OzelSektorKiraSertifikasi }) : null;
+        fonIcerikDagilim.OzelSektorTahvili != 0 ? dataVictoryForPieChartFonIcerik.push({ x: "Özel Sektör Tahvili", y: fonIcerikDagilim.OzelSektorTahvili, l: colors.OzelSektorTahvili }) : null;
+        fonIcerikDagilim.TPP != 0 ? dataVictoryForPieChartFonIcerik.push({ x: "TPP", y: fonIcerikDagilim.TPP, l: colors.TPP }) : null;
+        fonIcerikDagilim.TersRepo != 0 ? dataVictoryForPieChartFonIcerik.push({ x: "Ters Repo", y: fonIcerikDagilim.TersRepo, l: colors.TersRepo }) : null;
+        fonIcerikDagilim.TersRepo != 0 ? dataVictoryForPieChartFonIcerik.push({ x: "Türev Aracı", y: fonIcerikDagilim.TersRepo, l: colors.TurevAraci }) : null;
+        fonIcerikDagilim.VadeliMevduat != 0 ? dataVictoryForPieChartFonIcerik.push({ x: "Vadeli Mevduat", y: fonIcerikDagilim.VadeliMevduat, l: colors.VadeliMevduat }) : null;
+        fonIcerikDagilim.VarligaDayaliMenkulKiymet != 0 ? dataVictoryForPieChartFonIcerik.push({ x: "Varlığa Dayalı Menkul Kıymet", y: fonIcerikDagilim.VarligaDayaliMenkulKiymet, l: colors.VarligaDayaliMenkulKiymet }) : null;
+        fonIcerikDagilim.YabanciBorclanmaAraci != 0 ? dataVictoryForPieChartFonIcerik.push({ x: "Yabancı Borçlanma Aracı", y: fonIcerikDagilim.YabanciBorclanmaAraci, l: colors.YabanciBorclanmaAraci }) : null;
+        fonIcerikDagilim.YabanciHisseSenedi != 0 ? dataVictoryForPieChartFonIcerik.push({ x: "Yabancı Hisse Senedi", y: fonIcerikDagilim.YabanciHisseSenedi, l: colors.YabanciHisseSenedi }) : null;
+        fonIcerikDagilim.YabanciMenkulKiymet != 0 ? dataVictoryForPieChartFonIcerik.push({ x: "Yabancı Menkul Kıymet", y: fonIcerikDagilim.YabanciMenkulKiymet, l: colors.YabanciMenkulKiymet }) : null;
+
+        return (
+            <View style={{ paddingBottom: 60 }} >
+                {this.istatistikView()}
+                {this.lineChart(this.state.dataVictoryLineChart, "Portföy  Grafiği")}
+                {this.pieChart(dataVictoryForPieChart, "Fon Genel Dağılım")}
+                {this.pieChart(dataVictoryForPieChartFonIcerik, "Fon İçerik Dağılım")}
+
+            </View>
+        );
+    }
+
+    renderLoading() {
+        if (this.state.isLoading) {
+            return (
+                <View style={styles.loadingStyle}>
+                    <ActivityIndicator
+                        size='large'
+                        color="#7FB3D5"
+                    />
+                </View>
+            )
+        }
+        else {
+            return null;
+        }
     }
 
     render() {
         return (
             <View style={{ backgroundColor: colors.backgroundColor, flex: 1 }}>
-                <StatusBar backgroundColor="#363E58" />
+                <StatusBar backgroundColor={"#1C212F"} />
                 <Container style={{ backgroundColor: colors.backgroundColor }}>
-                    <Tabs tabBarPosition='bottom' tabContainerStyle={{ height: 1 }}
-                        tabBarUnderlineStyle={{
-                            backgroundColor: colors.backgroundColor,
-                            height: 2,
-                        }}>
-                        <Tab heading={<TabHeading></TabHeading>}>
-                            <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} style={{ backgroundColor: colors.backgroundColor }}>
-                                <View style={{ flexDirection: "row" }}>
-                                    <View style={{ flexDirection: "row", borderRadius: 5, }}>
-                                        <TouchableOpacity style={{ flexDirection: "row", backgroundColor: "gray", padding: 9 }} onPress={() => this.props.navigation.navigate("Portföy Ekle", { portfoyEkle: this.addPortfoy.bind(this) })}>
-                                            <Ionicons name={"add-sharp"} size={30} color={colors.White} />
-                                        </TouchableOpacity>
-                                    </View>
-                                    <View style={{ flex: 1 }}>
-                                        <DropDownPicker
-                                            items={this.state.portfoylerDropDownPicker}
-                                            containerStyle={{ height: 50 }}
-                                            style={{ backgroundColor: '#363E58' }}
-                                            itemStyle={{
-                                                justifyContent: 'flex-start', backgroundColor: '#363E58'
-                                            }}
-                                            dropDownStyle={{ backgroundColor: '#363E58', flexDirection: "column" }}
-                                            onChangeItem={item => this.dropDownItemSelect(item.value)}
-                                            placeholder={"Portföy Seçiniz"}
-                                            labelStyle={{
-                                                fontSize: 14,
-                                                textAlign: 'left',
-                                                color: 'white'
-                                            }}
-                                            dropDownMaxHeight={500}
-                                            defaultValue={this.state.defaultDropDownPickerItem}
-                                        />
-                                    </View>
-                                </View>
+                    <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} style={{ backgroundColor: colors.backgroundColor }}>
+                        <View style={{ flexDirection: "row" }}>
+                            <View style={{ flexDirection: "row", borderRadius: 5, }}>
+                                <TouchableOpacity style={{ flexDirection: "row", backgroundColor: "gray", padding: 9 }} onPress={() => this.props.navigation.navigate("Portföy Ekle", { portfoyEkle: this.addPortfoy.bind(this) })}>
+                                    <Ionicons name={"add-sharp"} size={30} color={colors.White} />
+                                </TouchableOpacity>
+                            </View>
+                            <View style={{ flex: 1 }}>
+                                <DropDownPicker
+                                    items={this.state.portfoylerDropDownPicker}
+                                    containerStyle={{ height: 50 }}
+                                    style={{ backgroundColor: colors.backgroundColor }}
+                                    itemStyle={{
+                                        justifyContent: 'flex-start', backgroundColor: colors.backgroundColor
+                                    }}
+                                    dropDownStyle={{ backgroundColor: colors.backgroundColor, flexDirection: "column" }}
+                                    onChangeItem={item => this.dropDownItemSelect(item.value)}
+                                    placeholder={"Portföy Seçiniz"}
+                                    labelStyle={{
+                                        fontSize: 14,
+                                        textAlign: 'left',
+                                        color: colors.White
+                                    }}
+                                    dropDownMaxHeight={500}
+                                    defaultValue={this.state.defaultDropDownPickerItem}
+                                />
+                            </View>
+                        </View>
 
-                                <ScrollView style={{ backgroundColor: colors.backgroundColor, height: "100%" }} >
-                                    {!this.state.isLoading ?
+                        <ScrollView style={{ backgroundColor: colors.backgroundColor, height: "100%" }} >
+                            {!this.state.isLoading ?
+                                <View>
+                                    {this.state.selectedPortfoy != null ?
                                         <View>
-                                            <View style={{ alignItems: "center", borderWidth: 1, borderColor: colors.White, margin: 5, paddingVertical: 10 }}>
-                                                <Text style={{ color: colors.White, fontSize: 15, fontWeight: "bold" }}>{"Portföy Adı: " + this.state.selectedPortfoy.portfoyName}</Text>
+                                            <View style={{ margin: 5 }}>
+                                                <SwipeRow rightOpenValue={-100} stopRightSwipe={-100} disableRightSwipe
+                                                    body={
+                                                        <View style={{ alignItems: "center", backgroundColor: colors.portfoyAdColor, width: "100%", height: "100%" }}>
+                                                            <Text style={{ color: colors.White, fontSize: 15, fontWeight: "bold" }}>{"Portföy Adı: " + this.state.selectedPortfoy.portfoyName}</Text>
+                                                        </View>
+                                                    }
+                                                    style={{ alignItems: "center", backgroundColor: colors.portfoyAdColor }}
+                                                    right={
+                                                        <TouchableOpacity style={{ alignItems: "center", backgroundColor: colors.deleteButtonColor, paddingVertical: 12 }}
+                                                            onPress={() => this.deletePortfoy()}>
+                                                            <Ionicons name={"trash-sharp"} size={25} color={colors.White} />
+                                                        </TouchableOpacity>
+                                                    }
+                                                />
                                             </View>
                                             <View >
                                                 <TouchableOpacity style={{ alignItems: "center", margin: 5, paddingVertical: 10, backgroundColor: colors.greenAdd }}
@@ -463,113 +1061,73 @@ export default class Deneme extends Component<Props, FonGenelBilgiState> {
                                                     <Text style={{ color: colors.White, fontSize: 15, fontWeight: "bold" }}>{"Fon Ekle"}</Text>
                                                 </TouchableOpacity>
                                             </View>
-                                            <FlatList
-                                                style={{ backgroundColor: "#363E58" }}
-                                                data={this.state.fundItemToday}
-                                                contentContainerStyle={{ paddingBottom: 60 }}
-                                                renderItem={({ item }) => (
-                                                    <View style={{ backgroundColor: "#363E58" }}>
-                                                        <TouchableOpacity onPress={() => this.props.navigation.navigate("Fon Detay", { fundItem: item })}>
-                                                            <View style={styles.containerPortfoy}>
-                                                                <View style={{ flexDirection: "row", borderBottomWidth: 1, borderColor: "grey" }}>
-                                                                    <View style={styles.row_cell1}>
-                                                                        <Text style={styles.textStyle}>{item.FonKodu}</Text>
-                                                                    </View>
-                                                                    <View style={styles.row_cell2}>
-                                                                        <Text style={styles.textStyle}>{item.FonUnvani}</Text>
-                                                                    </View>
-                                                                    <View style={styles.row_cell3}>
-                                                                        <View>
-                                                                            {item.GunlukArtisYuzdesi > 0 ? <Text style={styles.textStyleYuzdeDegisimPozitif}>{"%" + item.GunlukArtisYuzdesi.toFixed(2)}</Text> :
-                                                                                (item.GunlukArtisYuzdesi < 0 ? <Text style={styles.textStyleYuzdeDegisimNegatif}>{"%" + item.GunlukArtisYuzdesi.toFixed(2)}</Text> :
-                                                                                    <Text style={styles.textStyle}>{"%" + item.GunlukArtisYuzdesi}</Text>)}
-                                                                        </View>
-                                                                        <View>
-                                                                            <Text style={styles.textStyleBirimPayDeger}>{item.BirimPayDegeri}</Text>
-                                                                        </View>
-                                                                    </View>
+                                        </View> : null}
 
-                                                                </View>
-                                                                {item.AlinanFonlar.map(alinanFon =>
-                                                                    <View style={{ alignItems: "flex-start" }}>
-                                                                        {/* <View style={{ flex: 0.15 }}>
-                                                                                <Icon name="square" size={15} />
-                                                                            </View> */}
-                                                                        <View >
-                                                                            <Text style={{ color: colors.White, fontSize: 12 }}>{"Alındığı Tarih: " + alinanFon.dateView + " - Fiyat: " + alinanFon.fundPurchaseValue + " - Adet: " + alinanFon.fundCount}</Text>
-                                                                        </View>
-                                                                    </View>)}
+
+
+                                    <SwipeListView
+                                        style={{ backgroundColor: colors.backgroundColor }}
+                                        data={this.state.fundItemToday}
+                                        contentContainerStyle={{ paddingBottom: 60 }}
+                                        renderItem={({ item }) => (
+                                            <View style={{ backgroundColor: colors.backgroundColor }}>
+                                                <View >
+                                                    <View style={styles.containerPortfoy}>
+                                                        <View style={{ flexDirection: "row", borderBottomWidth: 1, borderColor: "grey" }}>
+                                                            <View style={styles.row_cell1}>
+                                                                <Text style={styles.textStyle}>{item.FonKodu}</Text>
+                                                            </View>
+                                                            <View style={styles.row_cell2}>
+                                                                <Text style={styles.textStyle}>{item.FonUnvani}</Text>
+                                                            </View>
+                                                            <View style={styles.row_cell3}>
                                                                 <View>
-                                                                    <Text style={{ color: colors.White, fontSize: 12 }}>{"Ortalama Maliyet: " + item.ortalamaMaliyet.toFixed(6)}</Text>
-
+                                                                    {item.GunlukArtisYuzdesi > 0 ? <Text style={styles.textStyleYuzdeDegisimPozitif}>{"%" + item.GunlukArtisYuzdesi.toFixed(2)}</Text> :
+                                                                        (item.GunlukArtisYuzdesi < 0 ? <Text style={styles.textStyleYuzdeDegisimNegatif}>{"%" + item.GunlukArtisYuzdesi.toFixed(2)}</Text> :
+                                                                            <Text style={styles.textStyle}>{"%" + item.GunlukArtisYuzdesi}</Text>)}
+                                                                </View>
+                                                                <View>
+                                                                    <Text style={styles.textStyleBirimPayDeger}>{item.BirimPayDegeri}</Text>
                                                                 </View>
                                                             </View>
 
-                                                        </TouchableOpacity>
-                                                    </View>)}
-                                                keyExtractor={(item, index) => String(index)}
-                                            />
-                                        </View>
-                                        : null}
-                                </ScrollView>
-                            </KeyboardAvoidingView>
-                        </Tab>
-
-
-
-                        <Tab heading={<TabHeading></TabHeading>} >
-                            <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} style={{ backgroundColor: colors.backgroundColor }}>
-
-                                <ScrollView style={{ backgroundColor: colors.backgroundColor, height: "100%" }}>
-                                    {!this.state.isLoading ?
-                                        <View>
-                                            <FlatList
-                                                style={{ backgroundColor: "#363E58" }}
-                                                contentContainerStyle={{ paddingBottom: 195 }}
-                                                data={this.state.portfoyler}
-                                                renderItem={({ item }) => (
-                                                    <View style={{ backgroundColor: "#363E58" }}>
-                                                        <TouchableOpacity >
-                                                            <View style={styles.container}>
-                                                                <View>
-                                                                    <Text style={{ color: "white" }}>{item.portfoyName + " " + item.portfoyId}</Text>
+                                                        </View>
+                                                        {item.AlinanFonlar.map(alinanFon =>
+                                                            <View style={{ alignItems: "flex-start" }}>
+                                                                <View >
+                                                                    <Text style={{ color: colors.White, fontSize: 12 }}>{"Alındığı Tarih: " + alinanFon.dateView + " - Fiyat: " + alinanFon.fundPurchaseValue + " - Adet: " + alinanFon.fundCount}</Text>
                                                                 </View>
+                                                            </View>)}
+                                                        <View>
+                                                            <Text style={{ color: colors.White, fontSize: 12 }}>{"Ortalama Maliyet: " + item.ortalamaMaliyet.toFixed(6)}</Text>
 
-                                                            </View>
+                                                        </View>
+                                                    </View>
 
-                                                        </TouchableOpacity>
-                                                    </View>)}
-                                                keyExtractor={(item, index) => String(index)}
-                                            />
-
-
-                                            <FlatList
-                                                style={{ backgroundColor: "#363E58" }}
-                                                //contentContainerStyle={{ paddingBottom: 195 }}
-                                                data={this.state.firebaseFonlar}
-                                                renderItem={({ item }) => (
-                                                    <View style={{ backgroundColor: "#363E58" }}>
-                                                        <TouchableOpacity >
-                                                            <View style={styles.container}>
-                                                                <View>
-                                                                    <Text style={{ color: "white" }}>{item.fundName + " " + item.fundId}</Text>
-                                                                </View>
-
-                                                            </View>
-
-                                                        </TouchableOpacity>
-                                                    </View>)}
-                                                keyExtractor={(item, index) => String(index)}
-                                            />
-                                        </View>
-                                        : null}
-                                </ScrollView>
-                            </KeyboardAvoidingView>
-                        </Tab>
-
-
-                    </Tabs>
+                                                </View>
+                                            </View>)}
+                                        keyExtractor={(item, index) => String(index)}
+                                        leftOpenValue={100}
+                                        rightOpenValue={-100}
+                                        stopLeftSwipe={100}
+                                        stopRightSwipe={-100}
+                                        renderHiddenItem={(data, rowMap) => (
+                                            this.swipeContainer(data, rowMap)
+                                        )}
+                                        swipeToClosePercent={10}
+                                    />
+                                    {this.state.iconReverse && this.state.selectedPortfoy != null && this.state.fundItemToday.length > 0 ? this.swipeUpView() : null}
+                                </View>
+                                : null}
+                        </ScrollView>
+                    </KeyboardAvoidingView>
                 </Container>
+                {this.state.selectedPortfoy != null ? <View>
+                    <TouchableOpacity style={styles.bottomView} onPress={() => this.setState({ iconReverse: !this.state.iconReverse })}>
+                        <Ionicons name={!this.state.iconReverse ? "chevron-up-sharp" : "chevron-down-sharp"} size={50} color={colors.White} />
+                    </TouchableOpacity>
+                </View> : null}
+                {this.renderLoading()}
             </View >
         );
     }

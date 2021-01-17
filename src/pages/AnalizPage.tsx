@@ -8,6 +8,7 @@ import {
     Dimensions,
     FlatList,
     ScrollView,
+    ActivityIndicator,
 } from "react-native";
 import { NavigationScreenProp, NavigationState, } from "react-navigation";
 import { Formik } from "formik";
@@ -252,10 +253,26 @@ export default class Deneme extends Component<Props, FonGenelBilgiState> {
         )
     }
 
+    renderLoading() {
+        if (this.state.isLoading) {
+            return (
+                <View style={styles.loadingStyle}>
+                    <ActivityIndicator
+                        size='large'
+                        color="#7FB3D5"
+                    />
+                </View>
+            )
+        }
+        else {
+            return null;
+        }
+    }
+
     render() {
         return (
             <View style={{ backgroundColor: colors.backgroundColor, flex: 1 }}>
-                <StatusBar backgroundColor="#363E58" />
+                <StatusBar backgroundColor={"#1C212F"} />
                 {/* <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} >
                     <View style={{ backgroundColor: "#3C435A" }}>
                         {this.degiskenVeKarmaFonBarChart()}
@@ -293,6 +310,7 @@ export default class Deneme extends Component<Props, FonGenelBilgiState> {
 
                     </Tabs>
                 </Container>
+                {this.renderLoading()}
             </View >
         );
     }

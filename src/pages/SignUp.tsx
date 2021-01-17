@@ -34,18 +34,29 @@ interface userData {
   password: string;
 }
 
+interface States {
+  isLoading: boolean;
+}
+
 const loginSchema = Yup.object().shape({
   username: Yup.string()
     .matches(/^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/, "example@senolkeskin.com")
     .required("Zorunlu Alan"),
   password: Yup.string()
     .matches(/^[a-zA-Z0-9_-]+$/)
-    .min(6)
-    .max(16)
+    .min(6, "Şifre 6 karakterden uzun olmalıdır")
+    .max(16, "Şifre 16 karakterden uzun olmamalıdır")
     .required("Zorunlu Alan")
 });
 
-export default class Login extends Component<Props, {}> {
+export default class Login extends Component<Props, States> {
+
+  constructor(props: Props) {
+    super(props);
+    this.state = {
+      isLoading: false,
+    };
+  }
 
   //buton disable durumunu burada yapabilirsin
   handleLogin = (values: userData) => { };
@@ -53,11 +64,28 @@ export default class Login extends Component<Props, {}> {
   renderLoginButton(userData: userData) {
     const { register } = useContext(AuthContext);
     return (
-      <TouchableOpacity style={styles.buttonContainer} disabled={userData.password == "" || userData.username == "" || userData.password == null || userData.username == null}>
+      <TouchableOpacity style={styles.buttonContainer} disabled={userData.password == "" || userData.username == "" || userData.password == null || userData.username == null}
+        onPress={() => { this.setState({ isLoading: true }); register(userData.username, userData.password) }}>
         <Text style={styles.buttonText}
-          onPress={() => register(userData.username, userData.password)}>{"Kayıt Ol"}</Text>
+        >{"Kayıt Ol"}</Text>
       </TouchableOpacity>
     );
+  }
+
+  renderLoading() {
+    if (this.state.isLoading) {
+      return (
+        <View style={styles.loadingStyle}>
+          <ActivityIndicator
+            size='large'
+            color="#7FB3D5"
+          />
+        </View>
+      )
+    }
+    else {
+      return null;
+    }
   }
 
   render() {
@@ -94,6 +122,7 @@ export default class Login extends Component<Props, {}> {
                           onBlur={handleBlur("username")}
                         />
                       </View>
+                      <Text style={styles.errorText}>{errors.username}</Text>
                       <View style={styles.input}>
                         <Input
                           inputStyle={{ color: 'black' }}
@@ -106,6 +135,7 @@ export default class Login extends Component<Props, {}> {
                           secureTextEntry
                         />
                       </View>
+                      <Text style={styles.errorText}>{errors.password}</Text>
                       {this.renderLoginButton(values)}
 
                       <Text style={styles.errorMessageText}>{this.props.loginErrorMessage}</Text>
@@ -116,7 +146,7 @@ export default class Login extends Component<Props, {}> {
             </Formik>
           </ScrollView>
         </KeyboardAvoidingView>
-
+        {this.renderLoading()}
       </View>
     );
   }

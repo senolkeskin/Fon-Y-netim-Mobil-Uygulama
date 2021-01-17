@@ -80,7 +80,7 @@ const styles = StyleSheet.create({
         color: 'black',
       },
       buttonContainer:{
-        backgroundColor:'#D2D5F1',
+        backgroundColor:'#AAB7B8',
         borderRadius: 5,
         marginHorizontal: 60,
         paddingVertical: 15,
@@ -89,19 +89,17 @@ const styles = StyleSheet.create({
       },
       buttonText:{
         textAlign: "center",
-        color: "#1928A9",
-        fontWeight: "900",
+        color: "#212F3D",
+        fontWeight:"bold",
+        fontSize:15
       },
       headStyle: {
-        paddingVertical: 30,
         justifyContent: "center",
         alignItems: "center",
       },
       logo:{
-        width:100,
-        height:100,
-        borderRadius:50,
-        backgroundColor:'black',
+        width:220,
+        height:220,
       },
       headText: {
         fontSize: 30,
@@ -110,7 +108,7 @@ const styles = StyleSheet.create({
       },
       inputContainer: {
         justifyContent: "space-between",
-        padding: 20,
+        paddingHorizontal: 20,
         flex:4,
       },
       errorMessageText: {
@@ -143,7 +141,6 @@ const styles = StyleSheet.create({
         backgroundColor: "#1C212F",
         flexDirection:"column",
         justifyContent: 'flex-start',
-        //alignItems: 'center',
         paddingTop: 1,
         paddingBottom: 1,
         paddingLeft: 8,
@@ -152,9 +149,42 @@ const styles = StyleSheet.create({
         marginRight: 1,
         marginTop: 2,
         marginBottom: 2,
-        //height:70,
         width:"100%",
     },
+    containerPortfoySwipe: {
+      flexDirection:"row",
+      justifyContent: 'flex-start',
+      paddingTop: 1,
+      paddingBottom: 1,
+      paddingLeft: 8,
+      paddingRight: 8,
+      marginLeft: 1,
+      marginRight: 1,
+      marginTop: 2,
+      marginBottom: 2,
+      height:"100%",
+      width:"100%",
+  },
+  bottomView: {
+    width: '100%',
+    height: 50,
+    justifyContent: 'center',
+    alignItems: 'center',
+    position: 'relative',
+    bottom: 0,
+    backgroundColor: "#AAB7B8",
+  },
+  loadingStyle: {
+    zIndex: 1,
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    top: 0,
+    bottom: 0,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: "#F5FCFF88"
+  }
 });
 
 export default styles;

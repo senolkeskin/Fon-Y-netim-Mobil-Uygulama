@@ -184,7 +184,6 @@ export default class Deneme extends Component<Props, FonGenelBilgiState> {
     }
     
     goBack(){
-        debugger;
         addPortfoy(this.state.userInfo.uid, null, this.state.portfoyName, new Date(), new Date(), true);
         this.props.navigation.goBack();
         this.props.route.params.portfoyEkle();
@@ -193,7 +192,7 @@ export default class Deneme extends Component<Props, FonGenelBilgiState> {
     render() {
         return (
             <View style={{ backgroundColor: colors.backgroundColor, flex: 1 }}>
-                <StatusBar backgroundColor="#363E58" />
+                <StatusBar backgroundColor={"#1C212F"} />
                 <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} style={{ backgroundColor: colors.backgroundColor }}>
                     <View>
                         <View style={styles.inputPortfoy}>

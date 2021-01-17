@@ -34,6 +34,10 @@ interface userData {
     password: string;
 }
 
+interface States {
+    isLoading: boolean;
+}
+
 const loginSchema = Yup.object().shape({
     username: Yup.string()
         .matches(/^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/, "example@senolkeskin.com")
@@ -43,7 +47,14 @@ const loginSchema = Yup.object().shape({
         .required("Zorunlu Alan")
 });
 
-export default class Login extends Component<Props, {}> {
+export default class Login extends Component<Props, States> {
+
+    constructor(props: Props) {
+        super(props);
+        this.state = {
+            isLoading: false,
+        };
+    }
 
     //buton disable durumunu burada yapabilirsin
     handleLogin = (values: userData) => { };
@@ -52,13 +63,29 @@ export default class Login extends Component<Props, {}> {
         const { login } = useContext(AuthContext);
         return (
             <View>
-                {!(userData.password == "" || userData.username == "" || userData.password == null || userData.username == null) ? <TouchableOpacity style={styles.buttonContainer} >
-                    <Text style={styles.buttonText}
-                        onPress={() => login(userData.username, userData.password)}>{"Giriş"}</Text>
-                </TouchableOpacity> : <TouchableOpacity style={styles.buttonContainer} ><Text style={styles.buttonText}>{"Giriş"}</Text></TouchableOpacity>}
+                <TouchableOpacity style={styles.buttonContainer}
+                    onPress={() => { this.setState({ isLoading: true }); login(userData.username, userData.password) }} disabled={userData.password == "" || userData.username == "" || userData.password == null || userData.username == null}>
+                    <Text style={styles.buttonText}>{"Giriş"}</Text>
+                </TouchableOpacity>
             </View>
 
         );
+    }
+
+    renderLoading() {
+        if (this.state.isLoading) {
+            return (
+                <View style={styles.loadingStyle}>
+                    <ActivityIndicator
+                        size='large'
+                        color="#7FB3D5"
+                    />
+                </View>
+            )
+        }
+        else {
+            return null;
+        }
     }
 
     render() {
@@ -81,7 +108,7 @@ export default class Login extends Component<Props, {}> {
                                             <Image
                                                 style={styles.logo}
                                                 source={logo} />
-                                            <Text style={styles.headText}> Şenol K Fon</Text>
+                                            {/* <Text style={styles.headText}>Fon Portföy Yönetim</Text> */}
                                         </View>
 
                                         <View style={styles.inputContainer}>
@@ -127,10 +154,10 @@ export default class Login extends Component<Props, {}> {
                                     </View>
                                 );
                             }}
-                        </Formik>
+                        </Formik>   
                     </ScrollView>
                 </KeyboardAvoidingView>
-
+                {this.renderLoading()}
             </View>
         );
     }
