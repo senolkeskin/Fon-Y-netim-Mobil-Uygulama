@@ -1,4 +1,4 @@
-import React, { Component, useContext } from "react";
+import React, { Component } from "react";
 import {
     View,
     Text,
@@ -6,7 +6,6 @@ import {
     Platform,
     StatusBar,
     Dimensions,
-    FlatList,
     ScrollView,
     ListRenderItemInfo,
     Alert,
@@ -15,26 +14,22 @@ import {
 import { NavigationScreenProp, NavigationState, } from "react-navigation";
 import styles from "../styles";
 import Icon from "react-native-vector-icons/Ionicons";
-import RNPickerSelect from 'react-native-picker-select';
-import { Input, CheckBox, SearchBar } from "react-native-elements";
-import { LineChart } from "react-native-chart-kit";
 import axios from "axios";
-import { FonIcerikleri, FonTurleri, Gunler, GunSayisi } from "../constants/enums"
+import { FonTurleri, GunSayisi } from "../constants/enums"
 import { TouchableOpacity } from "react-native-gesture-handler";
 import AsyncStorage from "@react-native-community/async-storage";
-import { VictoryAxis, VictoryBar, VictoryChart, VictoryLabel, VictoryLine, VictoryPie, VictoryTheme, VictoryTooltip, VictoryVoronoiContainer, } from "victory-native";
+import { VictoryAxis, VictoryChart, VictoryLine, VictoryPie, VictoryTheme, VictoryTooltip, VictoryVoronoiContainer, } from "victory-native";
 import { colors } from "../constants/colors";
-import { Container, SwipeRow, Tab, TabHeading, Tabs } from "native-base";
+import { Container, SwipeRow } from "native-base";
 import Svg from "react-native-svg"
 
-import { addFundInfo, addPortfoy, deleteFundInfo, deletePortfoy, fetchPortfoyDataFirebase, fetchPortfoyFundsDataFirebase } from "../firebaseRealtimeDatabase/firebaseRealtimeDatabase"
-import { AuthContext } from "../navigation/Auth";
+import { deleteFundInfo, deletePortfoy, fetchPortfoyDataFirebase, fetchPortfoyFundsDataFirebase } from "../firebaseRealtimeDatabase/firebaseRealtimeDatabase"
 import DropDownPicker from "react-native-dropdown-picker";
 import Ionicons from "react-native-vector-icons/Ionicons";
 import { RowMap, SwipeListView } from 'react-native-swipe-list-view';
-import SwipeUpDown from 'react-native-swipe-up-down';
 import { moderateScale, scale } from "react-native-size-matters";
-
+import { BannerAd, BannerAdSize, TestIds } from '@react-native-firebase/admob';
+import firebaseJson from "../../firebase.json"
 
 
 const screenWidth = Dimensions.get("window").width;
@@ -533,7 +528,7 @@ export default class Deneme extends Component<Props, FonGenelBilgiState> {
                 defaultDropDownPickerItem: portfoyler[portfoyler.length - 1].portfoyId,
                 selectedPortfoy: portfoyler[portfoyler.length - 1],
                 isLoading: false,
-                fundItemToday:[]
+                fundItemToday: []
             })
         });
     }
@@ -609,14 +604,14 @@ export default class Deneme extends Component<Props, FonGenelBilgiState> {
                 <View style={{ flex: 1, alignContent: "flex-start" }}>
                     <TouchableOpacity style={{ width: "100%", height: "95%", backgroundColor: colors.greenAdd, justifyContent: "center" }}
                         onPress={() => { rowMap[data.index].closeRow(); this.props.navigation.navigate("Fon Detay", { fundItem: data.item }) }}>
-                        <Ionicons name={"bar-chart-sharp"} size={moderateScale(30,1)} color={colors.White} style={{ marginLeft: scale(27) }} />
+                        <Ionicons name={"bar-chart-sharp"} size={moderateScale(30, 1)} color={colors.White} style={{ marginLeft: scale(27) }} />
                     </TouchableOpacity>
                 </View>
 
                 <View style={{ flex: 1, alignContent: "flex-end" }}>
                     <TouchableOpacity style={{ width: "100%", height: "95%", backgroundColor: colors.deleteButtonColor, justifyContent: "center" }}
                         onPress={() => { rowMap[data.index].closeRow(); this.deleteFon(data.item.portfoyId, data.item.fundIds) }}>
-                        <Ionicons name={"trash-sharp"} size={moderateScale(30,1)} color={colors.White} style={{ marginLeft: scale(110) }} />
+                        <Ionicons name={"trash-sharp"} size={moderateScale(30, 1)} color={colors.White} style={{ marginLeft: scale(110) }} />
                     </TouchableOpacity>
                 </View>
             </View>
@@ -682,7 +677,7 @@ export default class Deneme extends Component<Props, FonGenelBilgiState> {
         return (
             <View>
                 <View style={{ alignItems: "center", justifyContent: "center", padding: scale(10), borderColor: "white", borderWidth: scale(1), marginBottom: scale(10) }}>
-                    <Text style={{ fontSize: moderateScale(15,1), textAlign: "center", color: "white" }}>{baslik}</Text>
+                    <Text style={{ fontSize: moderateScale(15, 1), textAlign: "center", color: "white" }}>{baslik}</Text>
                 </View>
                 <View style={{ flexDirection: "row" }}>
                     <View style={{ flex: 5 }}>
@@ -691,7 +686,7 @@ export default class Deneme extends Component<Props, FonGenelBilgiState> {
                                 standalone={false}
                                 labels={() => ''}
                                 style={{
-                                    labels: { fontSize: moderateScale(10,1), fill: "white" },
+                                    labels: { fontSize: moderateScale(10, 1), fill: "white" },
                                     data: {
                                         fill: ({ datum }) => datum.l
                                     }
@@ -701,7 +696,7 @@ export default class Deneme extends Component<Props, FonGenelBilgiState> {
                         </Svg>
                     </View>
                     <View style={{ flex: 4 }}>
-                        {dataVictoryForPieChart.sort((a, b) => b.y - a.y).map(r => <View style={{ margin: scale(5), flexDirection: "row" }}><View style={{ flex: 0.15 }}><Icon name="square" size={moderateScale(14,1)} color={r.l} /></View><View style={{ flex: 1 }}><Text style={{ color: colors.White, fontSize: moderateScale(9,1) }}>{r.x + ": %" + r.y.toFixed(2)}</Text></View></View>)}
+                        {dataVictoryForPieChart.sort((a, b) => b.y - a.y).map(r => <View style={{ margin: scale(5), flexDirection: "row" }}><View style={{ flex: 0.15 }}><Icon name="square" size={moderateScale(14, 1)} color={r.l} /></View><View style={{ flex: 1 }}><Text style={{ color: colors.White, fontSize: moderateScale(9, 1) }}>{r.x + ": %" + r.y.toFixed(2)}</Text></View></View>)}
                     </View>
                 </View>
             </View>
@@ -712,7 +707,7 @@ export default class Deneme extends Component<Props, FonGenelBilgiState> {
         return (
             <View>
                 <View style={{ alignItems: "center", justifyContent: "center", padding: scale(10), borderColor: "white", borderWidth: scale(1), marginBottom: scale(10) }}>
-                    <Text style={{ fontSize: moderateScale(15,1), textAlign: "center", color: "white" }}>{baslik}</Text>
+                    <Text style={{ fontSize: moderateScale(15, 1), textAlign: "center", color: "white" }}>{baslik}</Text>
                 </View>
                 <View>
                     <VictoryChart height={scale(300)} width={screenWidth}
@@ -736,16 +731,16 @@ export default class Deneme extends Component<Props, FonGenelBilgiState> {
                             standalone={false}
                             style={{
                                 axis: { stroke: colors.axisStrokeColor },
-                                axisLabel: { fontSize: moderateScale(16,1) },
+                                axisLabel: { fontSize: moderateScale(16, 1) },
                                 ticks: { stroke: colors.axisStrokeColor },
-                                tickLabels: { fontSize:  moderateScale(10,1), fill: colors.axisStrokeColor }
+                                tickLabels: { fontSize: moderateScale(10, 1), fill: colors.axisStrokeColor }
                             }}
                         />
                         <VictoryAxis tickCount={5} style={{
                             axis: { stroke: colors.axisStrokeColor },
-                            axisLabel: { fontSize: moderateScale(16,1) },
+                            axisLabel: { fontSize: moderateScale(16, 1) },
                             ticks: { stroke: colors.axisStrokeColor },
-                            tickLabels: { fontSize: moderateScale(9,1), padding: scale(5), angle: 340, verticalAnchor: 'middle', textAnchor: 'end', fill: colors.axisStrokeColor }
+                            tickLabels: { fontSize: moderateScale(9, 1), padding: scale(5), angle: 340, verticalAnchor: 'middle', textAnchor: 'end', fill: colors.axisStrokeColor }
                         }} />
                         <VictoryLine
                             data={dataVictory}
@@ -768,39 +763,39 @@ export default class Deneme extends Component<Props, FonGenelBilgiState> {
             <View style={{ padding: scale(10), marginBottom: scale(10) }}>
                 <View style={{ alignItems: "flex-start", flexDirection: "row", borderBottomWidth: scale(1), borderBottomColor: colors.White }}>
                     <View style={{ flex: 1 }}>
-                        <Text style={{ color: colors.White, fontSize: moderateScale(14,1) }}>{"Dünkü Değer"}</Text>
+                        <Text style={{ color: colors.White, fontSize: moderateScale(14, 1) }}>{"Dünkü Değer"}</Text>
                     </View>
                     <View style={{ flex: 1 }}>
-                        <Text style={{ color: colors.White, fontSize: moderateScale(14,1) }}>{"Bugünkü Değer"}</Text>
+                        <Text style={{ color: colors.White, fontSize: moderateScale(14, 1) }}>{"Bugünkü Değer"}</Text>
                     </View>
                     <View style={{ flex: 1 }} >
-                        <Text style={{ color: colors.White, fontSize: moderateScale(14,1) }}>{"Günlük Artış"}</Text>
+                        <Text style={{ color: colors.White, fontSize: moderateScale(14, 1) }}>{"Günlük Artış"}</Text>
                     </View>
 
                 </View>
 
                 <View style={{ alignItems: "flex-start", flexDirection: "row", marginBottom: scale(10) }}>
                     <View style={{ flex: 1 }}>
-                        <Text style={{ color: colors.White, fontSize: moderateScale(14,1) }}>{Number(this.state.portfoyunDunkuDegeri.toFixed(2)).toLocaleString() + " TL"}</Text>
+                        <Text style={{ color: colors.White, fontSize: moderateScale(14, 1) }}>{Number(this.state.portfoyunDunkuDegeri.toFixed(2)).toLocaleString() + " TL"}</Text>
                     </View>
                     <View style={{ flex: 1 }}>
-                        <Text style={{ color: colors.White, fontSize: moderateScale(14,1) }}>{Number(this.state.portfoyunSuankiDegeri.toFixed(2)).toLocaleString() + " TL"}</Text>
+                        <Text style={{ color: colors.White, fontSize: moderateScale(14, 1) }}>{Number(this.state.portfoyunSuankiDegeri.toFixed(2)).toLocaleString() + " TL"}</Text>
                     </View>
                     <View style={{ flex: 1 }} >
-                        <Text style={{ color: colors.White, fontSize: moderateScale(14,1) }}>{Number(this.state.portfoyGunlukArtis.toFixed(2)).toLocaleString() + " TL" + " (%" + Number(this.state.portfoyunGunlukArtisYuzdesi.toFixed(2)).toLocaleString() + ")"}</Text>
+                        <Text style={{ color: colors.White, fontSize: moderateScale(14, 1) }}>{Number(this.state.portfoyGunlukArtis.toFixed(2)).toLocaleString() + " TL" + " (%" + Number(this.state.portfoyunGunlukArtisYuzdesi.toFixed(2)).toLocaleString() + ")"}</Text>
                     </View>
 
                 </View>
 
                 <View style={{ alignItems: "flex-start", flexDirection: "row", borderBottomWidth: scale(1), borderBottomColor: colors.White }}>
                     <View style={{ flex: 1 }}>
-                        <Text style={{ color: colors.White, fontSize: moderateScale(11,1) }}>{"Fon Kodu"}</Text>
+                        <Text style={{ color: colors.White, fontSize: moderateScale(11, 1) }}>{"Fon Kodu"}</Text>
                     </View>
                     <View style={{ flex: 1 }}>
-                        <Text style={{ color: colors.White, fontSize: moderateScale(11,1) }}>{"Günlük Artış"}</Text>
+                        <Text style={{ color: colors.White, fontSize: moderateScale(11, 1) }}>{"Günlük Artış"}</Text>
                     </View>
                     <View style={{ flex: 1 }} >
-                        <Text style={{ color: colors.White, fontSize: moderateScale(11,1) }}>{"Genel Artış"}</Text>
+                        <Text style={{ color: colors.White, fontSize: moderateScale(11, 1) }}>{"Genel Artış"}</Text>
                     </View>
 
                 </View>
@@ -808,13 +803,13 @@ export default class Deneme extends Component<Props, FonGenelBilgiState> {
                 {this.state.fundItemPortfoy.map(fon =>
                     <View style={{ alignItems: "flex-start", flexDirection: "row" }}>
                         <View style={{ flex: 1 }}>
-                            <Text style={{ color: colors.White, fontSize: moderateScale(11,1) }}>{fon.FonKodu}</Text>
+                            <Text style={{ color: colors.White, fontSize: moderateScale(11, 1) }}>{fon.FonKodu}</Text>
                         </View>
                         <View style={{ flex: 1 }}>
-                            <Text style={{ color: colors.White, fontSize: moderateScale(11,1) }}>{fon.toplamDunkuDeger != 0 ? Number((fon.toplamBugunkuDeger - fon.toplamDunkuDeger).toFixed(2)).toLocaleString() + " (%" + (Number((((fon.toplamBugunkuDeger - fon.toplamDunkuDeger) / fon.toplamDunkuDeger) * 100).toFixed(2))).toLocaleString() + ")" : "0 (%0)"}</Text>
+                            <Text style={{ color: colors.White, fontSize: moderateScale(11, 1) }}>{fon.toplamDunkuDeger != 0 ? Number((fon.toplamBugunkuDeger - fon.toplamDunkuDeger).toFixed(2)).toLocaleString() + " (%" + (Number((((fon.toplamBugunkuDeger - fon.toplamDunkuDeger) / fon.toplamDunkuDeger) * 100).toFixed(2))).toLocaleString() + ")" : "0 (%0)"}</Text>
                         </View>
                         <View style={{ flex: 1 }} >
-                            <Text style={{ color: colors.White, fontSize: moderateScale(11,1) }}>{Number((fon.toplamBugunkuDeger - fon.toplamOdenenPara).toFixed(2)).toLocaleString() + " (%" + (Number((((fon.toplamBugunkuDeger - fon.toplamOdenenPara) / fon.toplamOdenenPara) * 100).toFixed(2))).toLocaleString() + ")"}</Text>
+                            <Text style={{ color: colors.White, fontSize: moderateScale(11, 1) }}>{Number((fon.toplamBugunkuDeger - fon.toplamOdenenPara).toFixed(2)).toLocaleString() + " (%" + (Number((((fon.toplamBugunkuDeger - fon.toplamOdenenPara) / fon.toplamOdenenPara) * 100).toFixed(2))).toLocaleString() + ")"}</Text>
                         </View>
 
                     </View>)}
@@ -823,26 +818,26 @@ export default class Deneme extends Component<Props, FonGenelBilgiState> {
 
                 <View style={{ alignItems: "flex-start", flexDirection: "row", borderBottomWidth: scale(1), borderBottomColor: colors.White, marginTop: scale(10) }}>
                     <View style={{ flex: 1 }}>
-                        <Text style={{ color: colors.White, fontSize: moderateScale(14,1) }}>{"Başlangıç Değer"}</Text>
+                        <Text style={{ color: colors.White, fontSize: moderateScale(14, 1) }}>{"Başlangıç Değer"}</Text>
                     </View>
                     <View style={{ flex: 1 }}>
-                        <Text style={{ color: colors.White, fontSize: moderateScale(14,1) }}>{"Toplam Değer"}</Text>
+                        <Text style={{ color: colors.White, fontSize: moderateScale(14, 1) }}>{"Toplam Değer"}</Text>
                     </View>
                     <View style={{ flex: 1 }}>
-                        <Text style={{ color: colors.White, fontSize: moderateScale(14,1) }}>{"Toplam Artış"}</Text>
+                        <Text style={{ color: colors.White, fontSize: moderateScale(14, 1) }}>{"Toplam Artış"}</Text>
                     </View>
 
                 </View>
 
                 <View style={{ alignItems: "flex-start", flexDirection: "row", marginBottom: scale(10) }}>
                     <View style={{ flex: 1 }}>
-                        <Text style={{ color: colors.White, fontSize: moderateScale(14,1) }}>{Number(this.state.portfoyeToplamHarcananPara.toFixed(2)).toLocaleString() + " TL"}</Text>
+                        <Text style={{ color: colors.White, fontSize: moderateScale(14, 1) }}>{Number(this.state.portfoyeToplamHarcananPara.toFixed(2)).toLocaleString() + " TL"}</Text>
                     </View>
                     <View style={{ flex: 1 }}>
-                        <Text style={{ color: colors.White, fontSize: moderateScale(14,1) }}>{Number(this.state.portfoyunSuankiDegeri.toFixed(2)).toLocaleString() + " TL"}</Text>
+                        <Text style={{ color: colors.White, fontSize: moderateScale(14, 1) }}>{Number(this.state.portfoyunSuankiDegeri.toFixed(2)).toLocaleString() + " TL"}</Text>
                     </View>
                     <View style={{ flex: 1 }}>
-                        <Text style={{ color: colors.White, fontSize: moderateScale(14,1) }}>{Number((this.state.portfoyunSuankiDegeri - this.state.portfoyeToplamHarcananPara).toFixed(2)).toLocaleString() + " TL" + " (%" + Number((((this.state.portfoyunSuankiDegeri - this.state.portfoyeToplamHarcananPara) / this.state.portfoyeToplamHarcananPara) * 100).toFixed(2)).toLocaleString() + ")"}</Text>
+                        <Text style={{ color: colors.White, fontSize: moderateScale(14, 1) }}>{Number((this.state.portfoyunSuankiDegeri - this.state.portfoyeToplamHarcananPara).toFixed(2)).toLocaleString() + " TL" + " (%" + Number((((this.state.portfoyunSuankiDegeri - this.state.portfoyeToplamHarcananPara) / this.state.portfoyeToplamHarcananPara) * 100).toFixed(2)).toLocaleString() + ")"}</Text>
                     </View>
                 </View>
             </View>
@@ -970,11 +965,12 @@ export default class Deneme extends Component<Props, FonGenelBilgiState> {
 
         return (
             <View style={{ paddingBottom: 60 }} >
+                {this.renderBannerAd()}
                 {this.istatistikView()}
                 {this.lineChart(this.state.dataVictoryLineChart, "Portföy  Grafiği")}
                 {this.pieChart(dataVictoryForPieChart, "Fon Genel Dağılım")}
                 {this.pieChart(dataVictoryForPieChartFonIcerik, "Fon İçerik Dağılım")}
-
+                {this.renderBannerAd()}
             </View>
         );
     }
@@ -995,6 +991,24 @@ export default class Deneme extends Component<Props, FonGenelBilgiState> {
         }
     }
 
+    renderBannerAd() {
+        const adUnitId = __DEV__ ? TestIds.BANNER : firebaseJson["react-native"].admob_android_app_id;
+        return (
+            <BannerAd
+                unitId={adUnitId}
+                size={BannerAdSize.FULL_BANNER}
+                requestOptions={{
+                    requestNonPersonalizedAdsOnly: true,
+                }}
+                onAdClosed={() => null}
+                onAdLoaded={() => null}
+                onAdFailedToLoad={() => null}
+                onAdLeftApplication={() => null}
+                onAdOpened={() => null}
+            />
+        )
+    }
+
     render() {
         return (
             <View style={{ backgroundColor: colors.backgroundColor, flex: 1 }}>
@@ -1004,7 +1018,7 @@ export default class Deneme extends Component<Props, FonGenelBilgiState> {
                         <View style={{ flexDirection: "row" }}>
                             <View style={{ flexDirection: "row", borderRadius: 5, }}>
                                 <TouchableOpacity style={{ flexDirection: "row", backgroundColor: "gray", padding: scale(9) }} onPress={() => this.props.navigation.navigate("Portföy Ekle", { portfoyEkle: this.addPortfoy.bind(this) })}>
-                                    <Ionicons name={"add-sharp"} size={moderateScale(30,1)} color={colors.White} />
+                                    <Ionicons name={"add-sharp"} size={moderateScale(30, 1)} color={colors.White} />
                                 </TouchableOpacity>
                             </View>
                             <View style={{ flex: 1 }}>
@@ -1019,7 +1033,7 @@ export default class Deneme extends Component<Props, FonGenelBilgiState> {
                                     onChangeItem={item => this.dropDownItemSelect(item.value)}
                                     placeholder={"Portföy Seçiniz"}
                                     labelStyle={{
-                                        fontSize: moderateScale(14,1),
+                                        fontSize: moderateScale(14, 1),
                                         textAlign: 'left',
                                         color: colors.White
                                     }}
@@ -1032,20 +1046,21 @@ export default class Deneme extends Component<Props, FonGenelBilgiState> {
                         <ScrollView style={{ backgroundColor: colors.backgroundColor, height: "100%" }} >
                             {!this.state.isLoading ?
                                 <View>
+                                    {this.renderBannerAd()}
                                     {this.state.selectedPortfoy != null ?
                                         <View>
                                             <View style={{ margin: scale(5) }}>
                                                 <SwipeRow rightOpenValue={-100} stopRightSwipe={-100} disableRightSwipe
                                                     body={
                                                         <View style={{ alignItems: "center", backgroundColor: colors.portfoyAdColor, width: "100%", height: "100%" }}>
-                                                            <Text style={{ color: colors.White, fontSize: moderateScale(14,1), fontWeight: "bold" }}>{"Portföy Adı: " + this.state.selectedPortfoy.portfoyName}</Text>
+                                                            <Text style={{ color: colors.White, fontSize: moderateScale(14, 1), fontWeight: "bold" }}>{"Portföy Adı: " + this.state.selectedPortfoy.portfoyName}</Text>
                                                         </View>
                                                     }
                                                     style={{ alignItems: "center", backgroundColor: colors.portfoyAdColor }}
                                                     right={
                                                         <TouchableOpacity style={{ alignItems: "center", backgroundColor: colors.deleteButtonColor, paddingVertical: scale(10) }}
                                                             onPress={() => this.deletePortfoy()}>
-                                                            <Ionicons name={"trash-sharp"} size={moderateScale(25,1)} color={colors.White} />
+                                                            <Ionicons name={"trash-sharp"} size={moderateScale(25, 1)} color={colors.White} />
                                                         </TouchableOpacity>
                                                     }
                                                 />
@@ -1053,7 +1068,7 @@ export default class Deneme extends Component<Props, FonGenelBilgiState> {
                                             <View >
                                                 <TouchableOpacity style={{ alignItems: "center", margin: scale(5), paddingVertical: scale(10), backgroundColor: colors.greenAdd }}
                                                     onPress={() => this.props.navigation.navigate("Fon Ekle", { fonEkle: this.addFon.bind(this), portfoyId: this.state.defaultDropDownPickerItem })}>
-                                                    <Text style={{ color: colors.White, fontSize: moderateScale(15,1), fontWeight: "bold" }}>{"Fon Ekle"}</Text>
+                                                    <Text style={{ color: colors.White, fontSize: moderateScale(15, 1), fontWeight: "bold" }}>{"Fon Ekle"}</Text>
                                                 </TouchableOpacity>
                                             </View>
                                         </View> : null}
@@ -1090,11 +1105,11 @@ export default class Deneme extends Component<Props, FonGenelBilgiState> {
                                                         {item.AlinanFonlar.map(alinanFon =>
                                                             <View style={{ alignItems: "flex-start" }}>
                                                                 <View >
-                                                                    <Text style={{ color: colors.White, fontSize: moderateScale(12,1) }}>{"Alındığı Tarih: " + alinanFon.dateView + " - Fiyat: " + alinanFon.fundPurchaseValue + " - Adet: " + alinanFon.fundCount}</Text>
+                                                                    <Text style={{ color: colors.White, fontSize: moderateScale(12, 1) }}>{"Alındığı Tarih: " + alinanFon.dateView + " - Fiyat: " + alinanFon.fundPurchaseValue + " - Adet: " + alinanFon.fundCount}</Text>
                                                                 </View>
                                                             </View>)}
                                                         <View>
-                                                            <Text style={{ color: colors.White, fontSize: moderateScale(12,1) }}>{"Ortalama Maliyet: " + item.ortalamaMaliyet.toFixed(6)}</Text>
+                                                            <Text style={{ color: colors.White, fontSize: moderateScale(12, 1) }}>{"Ortalama Maliyet: " + item.ortalamaMaliyet.toFixed(6)}</Text>
 
                                                         </View>
                                                     </View>
@@ -1119,7 +1134,7 @@ export default class Deneme extends Component<Props, FonGenelBilgiState> {
                 </Container>
                 {this.state.selectedPortfoy != null ? <View>
                     <TouchableOpacity style={styles.bottomView} onPress={() => this.setState({ iconReverse: !this.state.iconReverse })}>
-                        <Ionicons name={!this.state.iconReverse ? "chevron-up-sharp" : "chevron-down-sharp"} size={moderateScale(45,1)} color={colors.White} />
+                        <Ionicons name={!this.state.iconReverse ? "chevron-up-sharp" : "chevron-down-sharp"} size={moderateScale(45, 1)} color={colors.White} />
                     </TouchableOpacity>
                 </View> : null}
                 {this.renderLoading()}

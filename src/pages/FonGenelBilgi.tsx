@@ -13,11 +13,13 @@ import styles from "../styles";
 import { Input } from "react-native-elements";
 import axios from "axios";
 import { FonIcerikleri, FonTurleri, GunSayisi } from "../constants/enums"
-import { TouchableOpacity } from "react-native-gesture-handler";
+import { ScrollView, TouchableOpacity } from "react-native-gesture-handler";
 import DropDownPicker from "react-native-dropdown-picker";
 import AsyncStorage from "@react-native-community/async-storage"
 import { colors } from "../constants/colors";
 import { moderateScale, scale } from "react-native-size-matters";
+import admob, { BannerAd, BannerAdSize, InterstitialAd, TestIds, MaxAdContentRating, AdEventType } from '@react-native-firebase/admob';
+import firebaseJson from "../../firebase.json"
 
 interface Props {
     navigation: NavigationScreenProp<NavigationState>;
@@ -134,8 +136,24 @@ export default class FonGenelBilgi extends Component<Props, FonGenelBilgiState> 
         var dateNow = new Date();
         var oneMonthAgoDate = new Date();
         oneMonthAgoDate.setDate(dateNow.getDate() - GunSayisi.onBesGun);
+        admob()
+            .setRequestConfiguration({
+                // Update all future requests suitable for parental guidance
+                maxAdContentRating: MaxAdContentRating.PG,
 
-        this.fetchData(oneMonthAgoDate, dateNow);
+                // Indicates that you want your content treated as child-directed for purposes of COPPA.
+                tagForChildDirectedTreatment: true,
+
+                // Indicates that you want the ad request to be handled in a
+                // manner suitable for users under the age of consent.
+                tagForUnderAgeOfConsent: true,
+            })
+            .then(() => {
+                // Request config successfully set!
+            });
+        this.fetchData(oneMonthAgoDate, dateNow).then(() => {
+        });
+
     }
 
     fetchData = async (baslangicDate: Date, bitisDate: Date) => {
@@ -643,6 +661,24 @@ export default class FonGenelBilgi extends Component<Props, FonGenelBilgiState> 
         }
     }
 
+    renderBannerAd() {
+        const adUnitId = __DEV__ ? TestIds.BANNER : firebaseJson["react-native"].admob_android_app_id;
+        return (
+            <BannerAd
+                unitId={adUnitId}
+                size={BannerAdSize.FULL_BANNER}
+                requestOptions={{
+                    requestNonPersonalizedAdsOnly: true,
+                }}
+                onAdClosed={() => null}
+                onAdLoaded={() => null}
+                onAdFailedToLoad={() => null}
+                onAdLeftApplication={() => null}
+                onAdOpened={() => null}
+            />
+        )
+    }
+
     render() {
         return (
             <View style={{ backgroundColor: colors.backgroundColor, flex: 1 }}>
@@ -676,7 +712,7 @@ export default class FonGenelBilgi extends Component<Props, FonGenelBilgiState> 
                                 onChangeItem={item => this.dropDownItemSelect(item.value)}
                                 placeholder={"Fon Türü Seçiniz (SPK'dan alınan fon türleri)"}
                                 labelStyle={{
-                                    fontSize: moderateScale(13,1),
+                                    fontSize: moderateScale(13, 1),
                                     textAlign: 'left',
                                     color: 'white'
                                 }}
@@ -696,7 +732,7 @@ export default class FonGenelBilgi extends Component<Props, FonGenelBilgiState> 
                                 onChangeItem={item => this.dropDownItemSelectForContains(item.value)}
                                 placeholder={"Fon İçeriği Seçiniz"}
                                 labelStyle={{
-                                    fontSize: moderateScale(13,1),
+                                    fontSize: moderateScale(13, 1),
                                     textAlign: 'left',
                                     color: 'white'
                                 }}
@@ -704,37 +740,41 @@ export default class FonGenelBilgi extends Component<Props, FonGenelBilgiState> 
                             />
                         </View>
 
-                        {this.state.isLoading ? <FlatList
-                            style={{ backgroundColor: colors.backgroundColor }}
-                            contentContainerStyle={{ paddingBottom: scale(195) }}
-                            data={this.state.listingData}
-                            renderItem={({ item }) => (
-                                <View style={{ backgroundColor: colors.backgroundColor }}>
-                                    <TouchableOpacity onPress={() => this.props.navigation.navigate("Fon Detay", { fundItem: item })}>
-                                        <View style={styles.container}>
-                                            <View style={styles.row_cell1}>
-                                                <Text style={styles.textStyle}>{item.FonKodu}</Text>
-                                            </View>
-                                            <View style={styles.row_cell2}>
-                                                <Text style={styles.textStyle}>{item.FonUnvani}</Text>
-                                            </View>
-                                            <View style={styles.row_cell3}>
-                                                <View>
-                                                    {item.GunlukArtisYuzdesi > 0 ? <Text style={styles.textStyleYuzdeDegisimPozitif}>{"%" + item.GunlukArtisYuzdesi.toFixed(2)}</Text> :
-                                                        (item.GunlukArtisYuzdesi < 0 ? <Text style={styles.textStyleYuzdeDegisimNegatif}>{"%" + item.GunlukArtisYuzdesi.toFixed(2)}</Text> :
-                                                            <Text style={styles.textStyle}>{"%" + item.GunlukArtisYuzdesi}</Text>)}
-                                                </View>
-                                                <View>
-                                                    <Text style={styles.textStyleBirimPayDeger}>{item.BirimPayDegeri}</Text>
-                                                </View>
-                                            </View>
+                        {this.state.isLoading ?
+                            <View>
+                                < FlatList
+                                    style={{ backgroundColor: colors.backgroundColor }}
+                                    contentContainerStyle={{ paddingBottom: scale(195) }}
+                                    data={this.state.listingData}
+                                    renderItem={({ item, index }) => (
+                                        <View style={{ backgroundColor: colors.backgroundColor }}>
+                                            {index % 10 == 0 ? this.renderBannerAd() : null}
+                                            <TouchableOpacity onPress={() => this.props.navigation.navigate("Fon Detay", { fundItem: item })}>
+                                                <View style={styles.container}>
+                                                    <View style={styles.row_cell1}>
+                                                        <Text style={styles.textStyle}>{item.FonKodu}</Text>
+                                                    </View>
+                                                    <View style={styles.row_cell2}>
+                                                        <Text style={styles.textStyle}>{item.FonUnvani}</Text>
+                                                    </View>
+                                                    <View style={styles.row_cell3}>
+                                                        <View>
+                                                            {item.GunlukArtisYuzdesi > 0 ? <Text style={styles.textStyleYuzdeDegisimPozitif}>{"%" + item.GunlukArtisYuzdesi.toFixed(2)}</Text> :
+                                                                (item.GunlukArtisYuzdesi < 0 ? <Text style={styles.textStyleYuzdeDegisimNegatif}>{"%" + item.GunlukArtisYuzdesi.toFixed(2)}</Text> :
+                                                                    <Text style={styles.textStyle}>{"%" + item.GunlukArtisYuzdesi}</Text>)}
+                                                        </View>
+                                                        <View>
+                                                            <Text style={styles.textStyleBirimPayDeger}>{item.BirimPayDegeri}</Text>
+                                                        </View>
+                                                    </View>
 
-                                        </View>
+                                                </View>
 
-                                    </TouchableOpacity>
-                                </View>)}
-                            keyExtractor={(index) => String(index)}
-                        /> : null}
+                                            </TouchableOpacity>
+                                        </View>)}
+                                    keyExtractor={(index) => String(index)}
+                                />
+                            </View> : null}
                     </View>
                 </KeyboardAvoidingView>
                 {this.renderLoading()}

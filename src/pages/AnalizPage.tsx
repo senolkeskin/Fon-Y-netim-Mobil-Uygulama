@@ -19,6 +19,9 @@ import { colors } from "../constants/colors";
 import { Container, Tab, TabHeading, Tabs } from "native-base";
 import Svg from "react-native-svg"
 import { moderateScale, scale } from "react-native-size-matters";
+import { AdEventType, BannerAd, BannerAdSize, InterstitialAd, TestIds } from '@react-native-firebase/admob';
+import firebaseJson from "../../firebase.json"
+
 
 const screenWidth = Dimensions.get("window").width;
 
@@ -184,7 +187,7 @@ export default class Deneme extends Component<Props, FonGenelBilgiState> {
                                     strokeWidth: scale(2),
                                 },
                                 labels: {
-                                    fontSize: moderateScale(9,1),
+                                    fontSize: moderateScale(9, 1),
                                     fill: colors.White,
                                     textAlign: "center",
                                     alignItems: "center",
@@ -227,7 +230,7 @@ export default class Deneme extends Component<Props, FonGenelBilgiState> {
                             //labelRadius={150}
                             labels={({ datum }) => ''}
                             style={{
-                                labels: { fontSize: moderateScale(9,1), fill: "white" },
+                                labels: { fontSize: moderateScale(9, 1), fill: "white" },
                                 data: {
                                     fill: ({ datum }) => datum.l
                                 }
@@ -237,7 +240,7 @@ export default class Deneme extends Component<Props, FonGenelBilgiState> {
                     </Svg>
                 </View>
                 <View style={{ flex: 4 }}>
-                    {this.state.fonDetayDistributionToday.sort((a, b) => b.y - a.y).map(r => <View style={{ margin: 5, flexDirection: "row", alignItems: "center", justifyContent: "center" }}><View style={{ flex: 0.2, alignItems: "flex-end", justifyContent: "flex-end" }}><Icon name="square" size={moderateScale(20,1)} color={r.l} /></View><View style={{ flex: 1, alignItems: "flex-start", justifyContent: "flex-start" }}><Text style={{ color: colors.White, fontSize: moderateScale(11,1) }}>{r.x + ": %" + r.y.toFixed(2)}</Text></View></View>)}
+                    {this.state.fonDetayDistributionToday.sort((a, b) => b.y - a.y).map(r => <View style={{ margin: 5, flexDirection: "row", alignItems: "center", justifyContent: "center" }}><View style={{ flex: 0.2, alignItems: "flex-end", justifyContent: "flex-end" }}><Icon name="square" size={moderateScale(20, 1)} color={r.l} /></View><View style={{ flex: 1, alignItems: "flex-start", justifyContent: "flex-start" }}><Text style={{ color: colors.White, fontSize: moderateScale(11, 1) }}>{r.x + ": %" + r.y.toFixed(2)}</Text></View></View>)}
                 </View>
             </View>
         )
@@ -259,11 +262,45 @@ export default class Deneme extends Component<Props, FonGenelBilgiState> {
         }
     }
 
+    renderBannerAd() {
+        const adUnitId = __DEV__ ? TestIds.BANNER : firebaseJson["react-native"].admob_android_app_id;
+        return (
+            <BannerAd
+                unitId={adUnitId}
+                size={BannerAdSize.FULL_BANNER}
+                requestOptions={{
+                    requestNonPersonalizedAdsOnly: true,
+                }}
+                onAdClosed={() => null}
+                onAdLoaded={() => null}
+                onAdFailedToLoad={() => null}
+                onAdLeftApplication={() => null}
+                onAdOpened={() => null}
+            />
+        )
+    }
+
+    showInterstitialAd = () => {
+        // Create a new instance
+        const interstitialAd = InterstitialAd.createForAdRequest(TestIds.INTERSTITIAL);
+
+        // Add event handlers
+        interstitialAd.onAdEvent((type, error) => {
+            if (type === AdEventType.LOADED) {
+                interstitialAd.show();
+            }
+        });
+
+        // Load a new advert
+        interstitialAd.load();
+    }
+
     render() {
         return (
             <View style={{ backgroundColor: colors.backgroundColor, flex: 1 }}>
                 <StatusBar backgroundColor={"#1C212F"} />
                 <Container>
+                    {this.showInterstitialAd()}
                     <Tabs tabBarPosition='bottom' tabContainerStyle={{ height: 1 }}
                         tabBarUnderlineStyle={{
                             backgroundColor: colors.backgroundColor,
@@ -273,10 +310,17 @@ export default class Deneme extends Component<Props, FonGenelBilgiState> {
                             <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"}>
                                 {!this.state.isLoading ?
                                     <ScrollView style={{ backgroundColor: colors.backgroundColor, height: "100%" }} >
+
+
+                                        {this.renderBannerAd()}
+
+
+
                                         <View style={{ alignItems: "center", justifyContent: "center", padding: scale(10), borderColor: "white", borderWidth: scale(1) }}>
-                                            <Text style={{ fontSize: moderateScale(14,1), textAlign: "center", color: "white" }}>{"Değişken ve Karma Fonların Günlük İçerik Dağılımı"}</Text>
+                                            <Text style={{ fontSize: moderateScale(14, 1), textAlign: "center", color: "white" }}>{"Değişken ve Karma Fonların Günlük İçerik Dağılımı"}</Text>
                                         </View>
                                         {this.degiskenVeKarmaFonPieChart()}
+                                        {this.renderBannerAd()}
                                     </ScrollView> : null}
                             </KeyboardAvoidingView>
                         </Tab>
@@ -284,10 +328,12 @@ export default class Deneme extends Component<Props, FonGenelBilgiState> {
                             <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"}>
                                 {!this.state.isLoading ?
                                     <ScrollView style={{ backgroundColor: colors.backgroundColor }}>
+                                        {this.renderBannerAd()}
                                         <View style={{ alignItems: "center", justifyContent: "center", padding: scale(10), borderColor: "white", borderWidth: scale(1) }}>
-                                            <Text style={{ fontSize: moderateScale(14,1), textAlign: "center", color: "white" }}>{"Değişken ve Karma Fonların Aylık İçerik Değişimi"}</Text>
+                                            <Text style={{ fontSize: moderateScale(14, 1), textAlign: "center", color: "white" }}>{"Değişken ve Karma Fonların Aylık İçerik Değişimi"}</Text>
                                         </View>
                                         {this.degiskenVeKarmaFonBarChart()}
+                                        {this.renderBannerAd()}
                                     </ScrollView> : null}
                             </KeyboardAvoidingView>
                         </Tab>

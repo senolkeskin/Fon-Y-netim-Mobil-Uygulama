@@ -1,5 +1,6 @@
 {
     "react-native": {
-      "database_persistence_enabled": true
+      "database_persistence_enabled": true,
+      "admob_android_app_id": "ca-app-pub-2663317592266647~4265580271"
     }
   }
