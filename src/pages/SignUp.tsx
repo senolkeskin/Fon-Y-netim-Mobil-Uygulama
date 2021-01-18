@@ -65,7 +65,7 @@ export default class Login extends Component<Props, States> {
     const { register } = useContext(AuthContext);
     return (
       <TouchableOpacity style={styles.buttonContainer} disabled={userData.password == "" || userData.username == "" || userData.password == null || userData.username == null}
-        onPress={() => { this.setState({ isLoading: true }); register(userData.username, userData.password) }}>
+        onPress={() => {register(userData.username, userData.password) }}>
         <Text style={styles.buttonText}
         >{"Kayıt Ol"}</Text>
       </TouchableOpacity>

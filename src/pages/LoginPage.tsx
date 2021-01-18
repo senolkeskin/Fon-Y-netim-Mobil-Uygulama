@@ -64,7 +64,7 @@ export default class Login extends Component<Props, States> {
         return (
             <View>
                 <TouchableOpacity style={styles.buttonContainer}
-                    onPress={() => { this.setState({ isLoading: true }); login(userData.username, userData.password) }} disabled={userData.password == "" || userData.username == "" || userData.password == null || userData.username == null}>
+                    onPress={() => {login(userData.username, userData.password)}} disabled={userData.password == "" || userData.username == "" || userData.password == null || userData.username == null}>
                     <Text style={styles.buttonText}>{"Giriş"}</Text>
                 </TouchableOpacity>
             </View>

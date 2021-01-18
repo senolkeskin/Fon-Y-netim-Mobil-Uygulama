@@ -224,35 +224,39 @@ export default class Deneme extends Component<Props, FonGenelBilgiState> {
                     colorsPackage.push(colors.YabanciMenkulKiymet);
 
 
-                    this.setState({
-                        portfoyler: portfoyler,
-                        portfoylerDropDownPicker: portfoylerDropDownPicker,
-                        defaultDropDownPickerItem: portfoyler[portfoyler.length - 1].portfoyId,
-                        selectedPortfoy: portfoyler[portfoyler.length - 1],
-                        isLoading: false,
-                        colorsPackage: colorsPackage,
-                    })
-
-
-                    fetchPortfoyFundsDataFirebase(this.state.userInfo.uid, portfoyler[portfoyler.length - 1].portfoyId).then(result => {
-                        var firebaseFonlar: FirebaseFonModel[] = []
-                        result.forEach(element => {
-                            firebaseFonlar.push(element._snapshot.value);
-                        })
-                        //sondan beş eleman fon değil portföyün genel bilgileri
-                        firebaseFonlar.pop();
-                        firebaseFonlar.pop();
-                        firebaseFonlar.pop();
-                        firebaseFonlar.pop();
-                        firebaseFonlar.pop();
-
-                        this.fetchFunds(firebaseFonlar);
-
+                    if (portfoyler[portfoyler.length - 1] != undefined || portfoyler[portfoyler.length - 1] != null) {
                         this.setState({
-                            firebaseFonlar: firebaseFonlar,
+                            isLoading: false,
+                            portfoyler: portfoyler,
+                            portfoylerDropDownPicker: portfoylerDropDownPicker,
+                            defaultDropDownPickerItem: portfoyler[portfoyler.length - 1].portfoyId,
+                            selectedPortfoy: portfoyler[portfoyler.length - 1],
+                            colorsPackage: colorsPackage,
                         })
-                    })
-
+                        fetchPortfoyFundsDataFirebase(this.state.userInfo.uid, portfoyler[portfoyler.length - 1].portfoyId).then(result => {
+                            var firebaseFonlar: FirebaseFonModel[] = []
+                            result.forEach(element => {
+                                firebaseFonlar.push(element._snapshot.value);
+                            })
+                            //sondan beş eleman fon değil portföyün genel bilgileri
+                            firebaseFonlar.pop();
+                            firebaseFonlar.pop();
+                            firebaseFonlar.pop();
+                            firebaseFonlar.pop();
+                            firebaseFonlar.pop();
+    
+                            this.fetchFunds(firebaseFonlar);
+    
+                            this.setState({
+                                firebaseFonlar: firebaseFonlar,
+                            })
+                        })
+                    }
+                    else {
+                        this.setState({
+                            isLoading: false,
+                        })
+                    }
 
                 });
             }
