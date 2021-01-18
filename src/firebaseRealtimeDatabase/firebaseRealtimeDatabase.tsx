@@ -38,8 +38,8 @@ export const addFundInfo = (id: string, fundName: string, fundPurchaseValue: num
             fundPurchaseValue: fundPurchaseValue,
             fundCount: fundCount,
             userId: userId,
-            createdDate: createdDate,
-            updatedDate: updatedDate,
+            createdDate: createdDate.toISOString(),
+            updatedDate: updatedDate.toISOString(),
             isActive: isActive,
             portfoyId: portfoyId,
         };
@@ -83,8 +83,8 @@ export const addPortfoy = (userId: string, portfoyId: string, portfoyName: strin
         let dataToSave = {
             portfoyId: key + "-PRTFY",
             portfoyName: portfoyName,
-            createdDate: createdDate,
-            updatedDate: updatedDate,
+            createdDate: createdDate.toISOString(),
+            updatedDate: updatedDate.toISOString(),
             isActive: isActive,
         };
         firebase.app()

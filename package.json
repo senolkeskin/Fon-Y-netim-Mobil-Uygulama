@@ -28,6 +28,7 @@
     "native-base": "^2.13.15",
     "react": "16.13.1",
     "react-dom": "16.13.1",
+    "react-moment": "^1.1.1",
     "react-native": "~0.63.4",
     "react-native-admob": "^2.0.0-beta.6",
     "react-native-chart-kit": "^6.8.1",

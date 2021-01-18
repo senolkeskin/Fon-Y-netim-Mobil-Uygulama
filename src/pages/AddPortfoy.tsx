@@ -165,7 +165,8 @@ export default class Deneme extends Component<Props, FonGenelBilgiState> {
     }
 
     goBack() {
-        addPortfoy(this.state.userInfo.uid, null, this.state.portfoyName, new Date(), new Date(), true);
+        const date: Date = new Date();
+        addPortfoy(this.state.userInfo.uid, null, this.state.portfoyName, date, date, true);
         this.props.navigation.goBack();
         this.props.route.params.portfoyEkle();
     }

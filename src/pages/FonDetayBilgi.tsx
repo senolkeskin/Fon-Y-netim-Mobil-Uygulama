@@ -279,10 +279,10 @@ export default class FonDetayBilgi extends Component<Props, FonGenelBilgiState> 
 
     convertToValidFormadForApi(dateString: string) {
         let dateArr = dateString.split("-")
-        let day = dateArr[0]
-        let month = dateArr[1]
-        let year = dateArr[2]
-        return new Date(month + '-' + day + "-" + year)
+        let day = Number(dateArr[0])
+        let month = Number(dateArr[1])-1;
+        let year = Number(dateArr[2])
+        return new Date(year,month,day)
     }
 
     getFormattedDateForApi(date: Date) {
