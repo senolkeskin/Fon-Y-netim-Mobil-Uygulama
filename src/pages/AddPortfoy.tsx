@@ -94,7 +94,7 @@ interface FonGenelBilgiState {
     fonAdet: string,
 }
 
-export default class Deneme extends Component<Props, FonGenelBilgiState> {
+export default class AddPortfoy extends Component<Props, FonGenelBilgiState> {
     static navigationOptions = {
         headerShown: false,
     };

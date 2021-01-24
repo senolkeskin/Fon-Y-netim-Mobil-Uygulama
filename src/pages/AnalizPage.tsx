@@ -73,7 +73,7 @@ interface FonGenelBilgiState {
     isLoading: boolean,
 }
 
-export default class Deneme extends Component<Props, FonGenelBilgiState> {
+export default class AnalizPage extends Component<Props, FonGenelBilgiState> {
     static navigationOptions = {
         headerShown: false,
     };
@@ -240,7 +240,15 @@ export default class Deneme extends Component<Props, FonGenelBilgiState> {
                     </Svg>
                 </View>
                 <View style={{ flex: 4 }}>
-                    {this.state.fonDetayDistributionToday.sort((a, b) => b.y - a.y).map(r => <View style={{ margin: 5, flexDirection: "row", alignItems: "center", justifyContent: "center" }}><View style={{ flex: 0.2, alignItems: "flex-end", justifyContent: "flex-end" }}><Icon name="square" size={moderateScale(20, 1)} color={r.l} /></View><View style={{ flex: 1, alignItems: "flex-start", justifyContent: "flex-start" }}><Text style={{ color: colors.White, fontSize: moderateScale(11, 1) }}>{r.x + ": %" + r.y.toFixed(2)}</Text></View></View>)}
+                    {this.state.fonDetayDistributionToday.sort((a, b) => b.y - a.y).map((r, index) =>
+                        <View style={{ margin: 5, flexDirection: "row", alignItems: "center", justifyContent: "center" }} key={index}>
+                            <View style={{ flex: 0.2, alignItems: "flex-end", justifyContent: "flex-end" }}>
+                                <Icon name="square" size={moderateScale(20, 1)} color={r.l} />
+                            </View>
+                            <View style={{ flex: 1, alignItems: "flex-start", justifyContent: "flex-start" }}>
+                                <Text style={{ color: colors.White, fontSize: moderateScale(11, 1) }}>{r.x + ": %" + r.y.toFixed(2)}</Text>
+                            </View>
+                        </View>)}
                 </View>
             </View>
         )
@@ -267,7 +275,7 @@ export default class Deneme extends Component<Props, FonGenelBilgiState> {
         return (
             <BannerAd
                 unitId={adUnitId}
-                size={BannerAdSize.FULL_BANNER}
+                size={BannerAdSize.FLUID}
                 requestOptions={{
                     requestNonPersonalizedAdsOnly: true,
                 }}
@@ -289,8 +297,8 @@ export default class Deneme extends Component<Props, FonGenelBilgiState> {
             if (type === AdEventType.LOADED) {
                 interstitialAd.show();
             }
-            if(type === AdEventType.ERROR){
-                console.log(error+" geçiş eror")
+            if (type === AdEventType.ERROR) {
+                console.log(error + " geçiş eror")
             }
         });
 

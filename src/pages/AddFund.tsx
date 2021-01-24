@@ -17,6 +17,9 @@ import AsyncStorage from "@react-native-community/async-storage";
 import { colors } from "../constants/colors";
 import { addFundInfo } from "../firebaseRealtimeDatabase/firebaseRealtimeDatabase"
 import { moderateScale, scale } from "react-native-size-matters";
+import DatePicker from 'react-native-datepicker'
+
+const screenWidth = Dimensions.get("window").width;
 
 interface Props {
     navigation: NavigationScreenProp<NavigationState>;
@@ -95,9 +98,11 @@ interface FonGenelBilgiState {
     fonKodu: string,
     fonDegeri: string,
     fonAdet: string,
+    datePickerBaslangicDate: Date,
+    datePickerMaxDate: Date,
 }
 
-export default class Deneme extends Component<Props, FonGenelBilgiState> {
+export default class AddFund extends Component<Props, FonGenelBilgiState> {
     static navigationOptions = {
         headerShown: false,
     };
@@ -121,6 +126,8 @@ export default class Deneme extends Component<Props, FonGenelBilgiState> {
             fonKodu: null,
             fonDegeri: null,
             fonAdet: null,
+            datePickerBaslangicDate: new Date(),
+            datePickerMaxDate: new Date(),
         };
     }
 
@@ -148,7 +155,7 @@ export default class Deneme extends Component<Props, FonGenelBilgiState> {
 
     addFund() {
         if (this.state.fonKodu != "" || this.state.fonKodu != null || this.state.fonAdet != "" || this.state.fonAdet != null || this.state.fonDegeri != "" || this.state.fonDegeri != null) {
-            addFundInfo(null, this.state.fonKodu, Number(this.state.fonDegeri), Number(this.state.fonAdet), this.state.userInfo.uid, this.props.route.params.portfoyId, new Date(), new Date(), true);
+            addFundInfo(null, this.state.fonKodu, Number(this.state.fonDegeri), Number(this.state.fonAdet), this.state.userInfo.uid, this.props.route.params.portfoyId, this.state.datePickerBaslangicDate, new Date(), true);
         }
         this.props.navigation.goBack();
         this.props.route.params.fonEkle();
@@ -199,6 +206,24 @@ export default class Deneme extends Component<Props, FonGenelBilgiState> {
         return month + '-' + day + "-" + year;
     }
 
+
+    convertToValidFormadForApi(dateString: string) {
+        let dateArr = dateString.split("-")
+        let day = Number(dateArr[0])
+        let month = Number(dateArr[1]) - 1;
+        let year = Number(dateArr[2])
+        return new Date(year, month, day)
+    }
+
+    changeDate(date: string) {
+
+        var convertToValidFormadForApi = this.convertToValidFormadForApi(date);
+        this.setState({
+            datePickerBaslangicDate: convertToValidFormadForApi,
+        })
+    }
+
+
     render() {
         return (
             <View style={{ backgroundColor: colors.backgroundColor, flex: 1 }}>
@@ -208,7 +233,7 @@ export default class Deneme extends Component<Props, FonGenelBilgiState> {
                         <View style={{ marginTop: 10 }}>
                             <View style={{ flexDirection: "row" }}>
                                 <View style={{ flex: 1, alignItems: "flex-end", marginLeft: scale(10) }}>
-                                    <Text style={{ color: colors.White, marginTop: scale(20), fontSize: moderateScale(20,1), }}>{"Kodu: "}</Text>
+                                    <Text style={{ color: colors.White, marginTop: scale(20), fontSize: moderateScale(20, 1), }}>{"Kodu: "}</Text>
                                 </View>
                                 <View style={{ flex: 5 }}>
                                     <View style={styles.inputPortfoy}>
@@ -229,7 +254,7 @@ export default class Deneme extends Component<Props, FonGenelBilgiState> {
 
                             <View style={{ flexDirection: "row" }}>
                                 <View style={{ flex: 1, alignItems: "flex-end", marginLeft: scale(10) }}>
-                                    <Text style={{ color: colors.White, marginTop: scale(20), fontSize: moderateScale(20,1) }}>{"Fiyat: "}</Text>
+                                    <Text style={{ color: colors.White, marginTop: scale(20), fontSize: moderateScale(20, 1) }}>{"Fiyat: "}</Text>
                                 </View>
                                 <View style={{ flex: 5 }}>
                                     <View style={styles.inputPortfoy}>
@@ -268,9 +293,49 @@ export default class Deneme extends Component<Props, FonGenelBilgiState> {
                                 </View>
                             </View>
 
+
+                            <View style={{ flexDirection: "row" }}>
+                                <View style={{ flex: 1, alignItems: "flex-end", marginLeft: scale(10) }}>
+                                    <Text style={{ color: colors.White, marginTop: scale(20), fontSize: moderateScale(20) }}>{"Tarih: "}</Text>
+                                </View>
+                                <View style={{ flex: 5 }}>
+                                    <View style={{ marginTop: scale(10), marginLeft: scale(10) }} >
+                                        <View style={{ flexDirection: "row", marginTop: scale(2) }}>
+                                            <DatePicker
+                                                style={{ width: screenWidth / 2, backgroundColor: colors.White }}
+                                                date={this.state.datePickerBaslangicDate}
+                                                mode="date"
+                                                placeholder="select date"
+                                                format="DD-MM-YYYY"
+                                                maxDate={this.state.datePickerMaxDate}
+                                                confirmBtnText="Confirm"
+                                                cancelBtnText="Cancel"
+                                                customStyles={{
+                                                    dateIcon: {
+                                                        position: 'absolute',
+                                                        left: scale(0),
+                                                        top: scale(4),
+                                                        marginLeft: scale(0),
+                                                    },
+                                                    dateInput: {
+                                                        marginLeft: scale(36),
+
+                                                    },
+                                                    dateText: {
+                                                        color: "black"
+                                                    }
+                                                }}
+                                                onDateChange={(date: string) => { this.changeDate(date) }}
+                                            />
+                                        </View>
+
+                                    </View>
+                                </View>
+                            </View>
+
                             <View style={{ margin: scale(5), flexDirection: "row" }}>
                                 <View style={{ flex: 1, alignItems: "center", margin: scale(5) }}>
-                                    <Text style={{ color: colors.White, fontSize: moderateScale(20,1) }}>
+                                    <Text style={{ color: colors.White, fontSize: moderateScale(20, 1) }}>
                                         {Number(Number(this.state.fonDegeri) * Number(this.state.fonAdet)).toFixed(2) + " TL"}
                                     </Text>
                                 </View>
@@ -301,13 +366,13 @@ export default class Deneme extends Component<Props, FonGenelBilgiState> {
                                     <View style={{ backgroundColor: colors.backgroundColor }}>
                                         <TouchableOpacity onPress={() => this.getFundData(item.Kodu)}>
                                             <View style={styles.container}>
-                                                <Text style={{ color: colors.White, fontSize: moderateScale(11,1), fontWeight: "bold" }}>
+                                                <Text style={{ color: colors.White, fontSize: moderateScale(11, 1), fontWeight: "bold" }}>
                                                     {item.Kodu + " - " + item.Adi}
                                                 </Text>
                                             </View>
                                         </TouchableOpacity>
                                     </View>)}
-                                keyExtractor={(index) => String(index)}
+                                keyExtractor={(item, index) => String(index)}
                             />
                         </View>}
                 </KeyboardAvoidingView>

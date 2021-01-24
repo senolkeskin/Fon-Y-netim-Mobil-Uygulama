@@ -139,7 +139,7 @@ interface FonGenelBilgiState {
 
 }
 
-export default class Deneme extends Component<Props, FonGenelBilgiState> {
+export default class PortfoyPage extends Component<Props, FonGenelBilgiState> {
     static navigationOptions = {
         headerShown: false,
     };
@@ -244,9 +244,9 @@ export default class Deneme extends Component<Props, FonGenelBilgiState> {
                             firebaseFonlar.pop();
                             firebaseFonlar.pop();
                             firebaseFonlar.pop();
-    
+
                             this.fetchFunds(firebaseFonlar);
-    
+
                             this.setState({
                                 firebaseFonlar: firebaseFonlar,
                             })
@@ -281,6 +281,12 @@ export default class Deneme extends Component<Props, FonGenelBilgiState> {
             var baslangicDate = new Date();
             baslangicDate.setDate(bitisDate.getDate() - 60);
             var selectedPortfoyCreatedDate = new Date(this.state.selectedPortfoy.createdDate);
+            firebaseFonlar.forEach(item => {
+                item.createdDate = new Date(item.createdDate);
+                if (item.createdDate < selectedPortfoyCreatedDate) {
+                    selectedPortfoyCreatedDate = item.createdDate;
+                }
+            })
             baslangicDate = selectedPortfoyCreatedDate < baslangicDate ? selectedPortfoyCreatedDate : baslangicDate;
 
             const fundResponse = await axios.get("https://ws.spk.gov.tr/PortfolioValues/api/PortfoyDegerleri/" + apiText + "/1/" + this.getFormattedDateForApi(baslangicDate) + "/" + this.getFormattedDateForApi(bitisDate));
@@ -1000,7 +1006,7 @@ export default class Deneme extends Component<Props, FonGenelBilgiState> {
         return (
             <BannerAd
                 unitId={adUnitId}
-                size={BannerAdSize.FULL_BANNER}
+                size={BannerAdSize.FLUID}
                 requestOptions={{
                     requestNonPersonalizedAdsOnly: true,
                 }}

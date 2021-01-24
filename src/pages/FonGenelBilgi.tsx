@@ -666,10 +666,7 @@ export default class FonGenelBilgi extends Component<Props, FonGenelBilgiState> 
         return (
             <BannerAd
                 unitId={adUnitId}
-                size={BannerAdSize.FULL_BANNER}
-                requestOptions={{
-                    requestNonPersonalizedAdsOnly: true,
-                }}
+                size={BannerAdSize.FLUID}
                 onAdClosed={() => null}
                 onAdLoaded={() => null}
                 onAdFailedToLoad={(error) => console.log(error)}
@@ -772,7 +769,7 @@ export default class FonGenelBilgi extends Component<Props, FonGenelBilgiState> 
 
                                             </TouchableOpacity>
                                         </View>)}
-                                    keyExtractor={(index) => String(index)}
+                                    keyExtractor={(item, index) => String(index)}
                                 />
                             </View> : null}
                     </View>
