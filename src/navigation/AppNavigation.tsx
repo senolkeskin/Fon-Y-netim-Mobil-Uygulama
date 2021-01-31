@@ -3,7 +3,7 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs'
 import { createDrawerNavigator } from '@react-navigation/drawer'
-import { View } from "react-native";
+import { View,Text } from "react-native";
 import Ionicons from 'react-native-vector-icons/Ionicons';
 
 import auth from "@react-native-firebase/auth"
@@ -19,7 +19,8 @@ import { colors } from "../constants/colors";
 import PortfoyPage from "../pages/PortfoyPage";
 import AddFund from "../pages/AddFund";
 import AddPortfoy from "../pages/AddPortfoy";
-
+import { scale } from "react-native-size-matters";
+import styles from "../styles";
 
 const HomeStack = createStackNavigator();
 const AnalizStack = createStackNavigator();
@@ -60,9 +61,14 @@ const HomeStackScreen = () => {
           <View style={{ backgroundColor: "#1C212F", flex: 1, }} />
         ),
         headerRight: () => (
-          <TouchableOpacity style={{ marginRight: 10 }} onPress={() => logout()}>
-            <Ionicons name={"log-out-outline"} size={25} color={"white"} />
-          </TouchableOpacity>
+          <View style={{flexDirection:"row"}}>
+            <Text style={styles.stacknavigatorStyle}>
+              {user.email}
+            </Text>
+            <TouchableOpacity style={{ padding: scale(10) }} onPress={() => logout()}>
+              <Ionicons name={"log-out-outline"} size={25} color={"white"} />
+            </TouchableOpacity>
+          </View>
         ),
       }} />
       <HomeStack.Screen name="Fon Detay" component={FonDetayBilgi} options={{
@@ -82,7 +88,7 @@ const HomeStackScreen = () => {
 
 }
 const AnalizStackScreen = () => {
-  const { logout } = useContext(AuthContext);
+  const { logout, user } = useContext(AuthContext);
   return (
     <AnalizStack.Navigator>
       <AnalizStack.Screen name="Analiz" component={AnalizPage} options={{
@@ -91,9 +97,14 @@ const AnalizStackScreen = () => {
           <View style={{ backgroundColor: "#1C212F", flex: 1 }} />
         ),
         headerRight: () => (
-          <TouchableOpacity style={{ marginRight: 10 }} onPress={() => logout()}>
-            <Ionicons name={"log-out-outline"} size={25} color={"white"} />
-          </TouchableOpacity>
+          <View style={{flexDirection:"row"}}>
+            <Text style={styles.stacknavigatorStyle}>
+              {user.email}
+            </Text>
+            <TouchableOpacity style={{ padding: scale(10) }} onPress={() => logout()}>
+              <Ionicons name={"log-out-outline"} size={25} color={"white"} />
+            </TouchableOpacity>
+          </View>
         )
       }} />
     </AnalizStack.Navigator>
@@ -102,7 +113,7 @@ const AnalizStackScreen = () => {
 }
 
 const PortfoyStackScreen = () => {
-  const { logout } = useContext(AuthContext);
+  const { logout, user } = useContext(AuthContext);
   return (
     <PortfoyStack.Navigator>
       <PortfoyStack.Screen name="Portföy" component={PortfoyPage} options={{
@@ -112,9 +123,14 @@ const PortfoyStackScreen = () => {
           <View style={{ backgroundColor: "#1C212F", flex: 1 }} />
         ),
         headerRight: () => (
-          <TouchableOpacity style={{ marginRight: 10 }} onPress={() => logout()}>
-            <Ionicons name={"log-out-outline"} size={25} color={"white"} />
-          </TouchableOpacity>
+          <View style={{flexDirection:"row"}}>
+            <Text style={styles.stacknavigatorStyle}>
+              {user.email}
+            </Text>
+            <TouchableOpacity style={{ padding: scale(10) }} onPress={() => logout()}>
+              <Ionicons name={"log-out-outline"} size={25} color={"white"} />
+            </TouchableOpacity>
+          </View>
         )
       }} />
       <PortfoyStack.Screen name="Fon Ekle" component={AddFund} options={{

@@ -360,7 +360,7 @@ export default class AddFund extends Component<Props, FonGenelBilgiState> {
                             </View>
                             <FlatList
                                 style={{ backgroundColor: colors.backgroundColor }}
-                                contentContainerStyle={{ paddingBottom: scale(65) }}
+                                contentContainerStyle={{ paddingBottom: scale(125) }}
                                 data={this.state.listingData}
                                 renderItem={({ item }) => (
                                     <View style={{ backgroundColor: colors.backgroundColor }}>
