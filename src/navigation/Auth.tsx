@@ -71,13 +71,20 @@ export const AuthProvider = ({ children }) => {
         },
         register: async (email: string, password: string) => {
           try {
-            await auth().createUserWithEmailAndPassword(email, password).then(result => {
+            await auth().createUserWithEmailAndPassword(email, password).then(async result => {
               if (result.user != undefined) {
+                try {
+                  const jsonValue = JSON.stringify(result.user)
+                  await AsyncStorage.setItem("user", jsonValue);
+                } catch (error) {
+                  console.log(error);
+                }
                 Alert.alert(
                   //title
                   'Kayıt Başarılı',
                   //body
-                  '',
+                  //body
+                  String(result.user.email + "\n" + "Hoşgeldiniz"),
                   [
                     { text: "Tamam" },
                   ],

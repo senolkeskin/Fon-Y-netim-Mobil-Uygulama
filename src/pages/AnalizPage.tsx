@@ -168,6 +168,8 @@ export default class AnalizPage extends Component<Props, FonGenelBilgiState> {
                     isLoading: false,
                 }))
             }
+
+            this.showInterstitialAd()
         } catch (e) {
             console.log(e);
         }
@@ -275,7 +277,7 @@ export default class AnalizPage extends Component<Props, FonGenelBilgiState> {
         return (
             <BannerAd
                 unitId={adUnitId}
-                size={BannerAdSize.FLUID}
+                size={BannerAdSize.SMART_BANNER}
                 requestOptions={{
                     requestNonPersonalizedAdsOnly: true,
                 }}
@@ -311,7 +313,6 @@ export default class AnalizPage extends Component<Props, FonGenelBilgiState> {
             <View style={{ backgroundColor: colors.backgroundColor, flex: 1 }}>
                 <StatusBar backgroundColor={"#1C212F"} />
                 <Container>
-                    {this.showInterstitialAd()}
                     <Tabs tabBarPosition='bottom' tabContainerStyle={{ height: 1 }}
                         tabBarUnderlineStyle={{
                             backgroundColor: colors.backgroundColor,
@@ -321,12 +322,7 @@ export default class AnalizPage extends Component<Props, FonGenelBilgiState> {
                             <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"}>
                                 {!this.state.isLoading ?
                                     <ScrollView style={{ backgroundColor: colors.backgroundColor, height: "100%" }} >
-
-
-                                        {this.renderBannerAd()}
-
-
-
+                                        {/* {this.renderBannerAd()} */}
                                         <View style={{ alignItems: "center", justifyContent: "center", padding: scale(10), borderColor: "white", borderWidth: scale(1) }}>
                                             <Text style={{ fontSize: moderateScale(14, 1), textAlign: "center", color: "white" }}>{"Değişken ve Karma Fonların Günlük İçerik Dağılımı"}</Text>
                                         </View>
@@ -339,7 +335,7 @@ export default class AnalizPage extends Component<Props, FonGenelBilgiState> {
                             <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"}>
                                 {!this.state.isLoading ?
                                     <ScrollView style={{ backgroundColor: colors.backgroundColor }}>
-                                        {this.renderBannerAd()}
+                                        {/* {this.renderBannerAd()} */}
                                         <View style={{ alignItems: "center", justifyContent: "center", padding: scale(10), borderColor: "white", borderWidth: scale(1) }}>
                                             <Text style={{ fontSize: moderateScale(14, 1), textAlign: "center", color: "white" }}>{"Değişken ve Karma Fonların Aylık İçerik Değişimi"}</Text>
                                         </View>

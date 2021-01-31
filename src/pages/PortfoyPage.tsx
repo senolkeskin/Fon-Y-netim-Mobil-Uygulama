@@ -85,6 +85,7 @@ interface FonModel {
     toplamArtisYuzdesi?: number;
     toplamBugunkuDeger?: number;
     toplamDunkuDeger?: number;
+    genelYuzdelikArtis?: number;
 }
 
 interface Fund {
@@ -222,8 +223,6 @@ export default class PortfoyPage extends Component<Props, FonGenelBilgiState> {
                     colorsPackage.push(colors.YabanciBorclanmaAraci);
                     colorsPackage.push(colors.YabanciHisseSenedi);
                     colorsPackage.push(colors.YabanciMenkulKiymet);
-
-
                     if (portfoyler[portfoyler.length - 1] != undefined || portfoyler[portfoyler.length - 1] != null) {
                         this.setState({
                             isLoading: false,
@@ -476,6 +475,15 @@ export default class PortfoyPage extends Component<Props, FonGenelBilgiState> {
                 })
 
                 var portfoyunGunlukArtisYuzdesi = dunkuFiyat != 0 ? ((suankiFiyat - dunkuFiyat) / dunkuFiyat) * 100 : 0;
+
+                fundItemToday.forEach(item => {
+                    var fundValue = fundItemPortfoy.find((x: FonModel) => x.FonKodu == item.FonKodu);
+                    item.genelYuzdelikArtis = (((fundValue.toplamBugunkuDeger - fundValue.toplamOdenenPara) / fundValue.toplamOdenenPara) * 100);
+                    item.toplamDunkuDeger = fundValue.toplamDunkuDeger;
+                    item.toplamBugunkuDeger = fundValue.toplamBugunkuDeger;
+                    item.toplamOdenenPara = fundValue.toplamOdenenPara;
+
+                })
 
                 this.setState({
                     fundItemToday: fundItemToday,
@@ -786,43 +794,16 @@ export default class PortfoyPage extends Component<Props, FonGenelBilgiState> {
 
                 <View style={{ alignItems: "flex-start", flexDirection: "row", marginBottom: scale(10) }}>
                     <View style={{ flex: 1 }}>
-                        <Text style={{ color: colors.White, fontSize: moderateScale(14, 1) }}>{Number(this.state.portfoyunDunkuDegeri.toFixed(2)).toLocaleString() + " TL"}</Text>
+                        <Text style={{ color: colors.White, fontSize: moderateScale(13, 1) }}>{Number(this.state.portfoyunDunkuDegeri.toFixed(2)).toLocaleString() + " TL"}</Text>
                     </View>
                     <View style={{ flex: 1 }}>
-                        <Text style={{ color: colors.White, fontSize: moderateScale(14, 1) }}>{Number(this.state.portfoyunSuankiDegeri.toFixed(2)).toLocaleString() + " TL"}</Text>
+                        <Text style={{ color: colors.White, fontSize: moderateScale(13, 1) }}>{Number(this.state.portfoyunSuankiDegeri.toFixed(2)).toLocaleString() + " TL"}</Text>
                     </View>
                     <View style={{ flex: 1 }} >
-                        <Text style={{ color: colors.White, fontSize: moderateScale(14, 1) }}>{Number(this.state.portfoyGunlukArtis.toFixed(2)).toLocaleString() + " TL" + " (%" + Number(this.state.portfoyunGunlukArtisYuzdesi.toFixed(2)).toLocaleString() + ")"}</Text>
+                        <Text style={{ color: colors.White, fontSize: moderateScale(13, 1) }}>{Number(this.state.portfoyGunlukArtis.toFixed(2)).toLocaleString() + " TL" + " (%" + Number(this.state.portfoyunGunlukArtisYuzdesi.toFixed(2)).toLocaleString() + ")"}</Text>
                     </View>
 
                 </View>
-
-                <View style={{ alignItems: "flex-start", flexDirection: "row", borderBottomWidth: scale(1), borderBottomColor: colors.White }}>
-                    <View style={{ flex: 1 }}>
-                        <Text style={{ color: colors.White, fontSize: moderateScale(11, 1) }}>{"Fon Kodu"}</Text>
-                    </View>
-                    <View style={{ flex: 1 }}>
-                        <Text style={{ color: colors.White, fontSize: moderateScale(11, 1) }}>{"Günlük Artış"}</Text>
-                    </View>
-                    <View style={{ flex: 1 }} >
-                        <Text style={{ color: colors.White, fontSize: moderateScale(11, 1) }}>{"Genel Artış"}</Text>
-                    </View>
-
-                </View>
-
-                {this.state.fundItemPortfoy.map(fon =>
-                    <View style={{ alignItems: "flex-start", flexDirection: "row" }}>
-                        <View style={{ flex: 1 }}>
-                            <Text style={{ color: colors.White, fontSize: moderateScale(11, 1) }}>{fon.FonKodu}</Text>
-                        </View>
-                        <View style={{ flex: 1 }}>
-                            <Text style={{ color: colors.White, fontSize: moderateScale(11, 1) }}>{fon.toplamDunkuDeger != 0 ? Number((fon.toplamBugunkuDeger - fon.toplamDunkuDeger).toFixed(2)).toLocaleString() + " (%" + (Number((((fon.toplamBugunkuDeger - fon.toplamDunkuDeger) / fon.toplamDunkuDeger) * 100).toFixed(2))).toLocaleString() + ")" : "0 (%0)"}</Text>
-                        </View>
-                        <View style={{ flex: 1 }} >
-                            <Text style={{ color: colors.White, fontSize: moderateScale(11, 1) }}>{Number((fon.toplamBugunkuDeger - fon.toplamOdenenPara).toFixed(2)).toLocaleString() + " (%" + (Number((((fon.toplamBugunkuDeger - fon.toplamOdenenPara) / fon.toplamOdenenPara) * 100).toFixed(2))).toLocaleString() + ")"}</Text>
-                        </View>
-
-                    </View>)}
 
 
 
@@ -841,13 +822,13 @@ export default class PortfoyPage extends Component<Props, FonGenelBilgiState> {
 
                 <View style={{ alignItems: "flex-start", flexDirection: "row", marginBottom: scale(10) }}>
                     <View style={{ flex: 1 }}>
-                        <Text style={{ color: colors.White, fontSize: moderateScale(14, 1) }}>{Number(this.state.portfoyeToplamHarcananPara.toFixed(2)).toLocaleString() + " TL"}</Text>
+                        <Text style={{ color: colors.White, fontSize: moderateScale(13, 1) }}>{Number(this.state.portfoyeToplamHarcananPara.toFixed(2)).toLocaleString() + " TL"}</Text>
                     </View>
                     <View style={{ flex: 1 }}>
-                        <Text style={{ color: colors.White, fontSize: moderateScale(14, 1) }}>{Number(this.state.portfoyunSuankiDegeri.toFixed(2)).toLocaleString() + " TL"}</Text>
+                        <Text style={{ color: colors.White, fontSize: moderateScale(13, 1) }}>{Number(this.state.portfoyunSuankiDegeri.toFixed(2)).toLocaleString() + " TL"}</Text>
                     </View>
                     <View style={{ flex: 1 }}>
-                        <Text style={{ color: colors.White, fontSize: moderateScale(14, 1) }}>{Number((this.state.portfoyunSuankiDegeri - this.state.portfoyeToplamHarcananPara).toFixed(2)).toLocaleString() + " TL" + " (%" + Number((((this.state.portfoyunSuankiDegeri - this.state.portfoyeToplamHarcananPara) / this.state.portfoyeToplamHarcananPara) * 100).toFixed(2)).toLocaleString() + ")"}</Text>
+                        <Text style={{ color: colors.White, fontSize: moderateScale(13, 1) }}>{Number((this.state.portfoyunSuankiDegeri - this.state.portfoyeToplamHarcananPara).toFixed(2)).toLocaleString() + " TL" + " (%" + Number((((this.state.portfoyunSuankiDegeri - this.state.portfoyeToplamHarcananPara) / this.state.portfoyeToplamHarcananPara) * 100).toFixed(2)).toLocaleString() + ")"}</Text>
                     </View>
                 </View>
             </View>
@@ -975,12 +956,10 @@ export default class PortfoyPage extends Component<Props, FonGenelBilgiState> {
 
         return (
             <View style={{ paddingBottom: 60 }} >
-                {this.renderBannerAd()}
                 {this.istatistikView()}
                 {this.lineChart(this.state.dataVictoryLineChart, "Portföy  Grafiği")}
                 {this.pieChart(dataVictoryForPieChart, "Fon Genel Dağılım")}
                 {this.pieChart(dataVictoryForPieChartFonIcerik, "Fon İçerik Dağılım")}
-                {this.renderBannerAd()}
             </View>
         );
     }
@@ -1006,7 +985,7 @@ export default class PortfoyPage extends Component<Props, FonGenelBilgiState> {
         return (
             <BannerAd
                 unitId={adUnitId}
-                size={BannerAdSize.FLUID}
+                size={BannerAdSize.SMART_BANNER}
                 requestOptions={{
                     requestNonPersonalizedAdsOnly: true,
                 }}
@@ -1056,7 +1035,7 @@ export default class PortfoyPage extends Component<Props, FonGenelBilgiState> {
                         <ScrollView style={{ backgroundColor: colors.backgroundColor, height: "100%" }} >
                             {!this.state.isLoading ?
                                 <View>
-                                    {this.renderBannerAd()}
+                                    {/* {this.renderBannerAd()} */}
                                     {this.state.selectedPortfoy != null ?
                                         <View>
                                             <View style={{ margin: scale(5) }}>
@@ -1093,34 +1072,58 @@ export default class PortfoyPage extends Component<Props, FonGenelBilgiState> {
                                             <View style={{ backgroundColor: colors.backgroundColor }}>
                                                 <View >
                                                     <View style={styles.containerPortfoy}>
-                                                        <View style={{ flexDirection: "row", borderBottomWidth: scale(1), borderColor: "grey" }}>
+                                                        <View style={{ flexDirection: "row", borderBottomWidth: scale(1), borderColor: "grey",alignItems:"center" }}>
                                                             <View style={styles.row_cell1}>
                                                                 <Text style={styles.textStyle}>{item.FonKodu}</Text>
                                                             </View>
                                                             <View style={styles.row_cell2}>
                                                                 <Text style={styles.textStyle}>{item.FonUnvani}</Text>
                                                             </View>
-                                                            <View style={styles.row_cell3}>
-                                                                <View>
-                                                                    {item.GunlukArtisYuzdesi > 0 ? <Text style={styles.textStyleYuzdeDegisimPozitif}>{"%" + item.GunlukArtisYuzdesi.toFixed(2)}</Text> :
-                                                                        (item.GunlukArtisYuzdesi < 0 ? <Text style={styles.textStyleYuzdeDegisimNegatif}>{"%" + item.GunlukArtisYuzdesi.toFixed(2)}</Text> :
-                                                                            <Text style={styles.textStyle}>{"%" + item.GunlukArtisYuzdesi}</Text>)}
-                                                                </View>
-                                                                <View>
-                                                                    <Text style={styles.textStyleBirimPayDeger}>{item.BirimPayDegeri}</Text>
-                                                                </View>
-                                                            </View>
 
                                                         </View>
                                                         {item.AlinanFonlar.map(alinanFon =>
-                                                            <View style={{ alignItems: "flex-start" }}>
+                                                            <View style={{ alignItems: "center" }}>
                                                                 <View >
                                                                     <Text style={{ color: colors.White, fontSize: moderateScale(12, 1) }}>{"Alındığı Tarih: " + alinanFon.dateView + " - Fiyat: " + alinanFon.fundPurchaseValue + " - Adet: " + alinanFon.fundCount}</Text>
                                                                 </View>
                                                             </View>)}
-                                                        <View>
-                                                            <Text style={{ color: colors.White, fontSize: moderateScale(12, 1) }}>{"Ortalama Maliyet: " + item.ortalamaMaliyet.toFixed(6)}</Text>
+                                                        <View style={{justifyContent:"center",alignItems:"center"}}>
+                                                            <Text style={{ color: colors.White, fontSize: moderateScale(12, 1), fontWeight:"bold" }}>{"Ortalama Alış Maliyeti: " + item.ortalamaMaliyet.toFixed(6)}</Text>
+                                                            <Text style={{ color: colors.White, fontSize: moderateScale(12, 1), fontWeight:"bold" }}>{"Bugünkü değeri: " + item.BirimPayDegeri}</Text>
 
+                                                        </View>
+                                                        <View style={{ borderTopWidth: scale(1), borderColor: "grey", margin: scale(5) }}>
+                                                            <View style={{ flex: 1, flexDirection: "row", alignItems: "center", justifyContent: "center" }}>
+
+                                                                <View >
+                                                                    <Text style={styles.textStyle}>{"Günlük Değişim: "}</Text>
+                                                                </View>
+                                                                <View style={{ flexDirection: "row" }}>
+                                                                    {(item.toplamBugunkuDeger - item.toplamDunkuDeger) > 0 ? <Text style={styles.textStyleYuzdeDegisimPozitif}>{(item.toplamBugunkuDeger - item.toplamDunkuDeger).toFixed(2)}</Text> :
+                                                                        ((item.toplamBugunkuDeger - item.toplamDunkuDeger) < 0 ? <Text style={styles.textStyleYuzdeDegisimNegatif}>{(item.toplamBugunkuDeger - item.toplamDunkuDeger).toFixed(2)}</Text> :
+                                                                            <Text style={styles.textStyle}>{(item.toplamBugunkuDeger - item.toplamDunkuDeger)}</Text>)}
+                                                                    {item.GunlukArtisYuzdesi > 0 ? <Text style={styles.textStyleYuzdeDegisimPozitif}>{"(%" + item.GunlukArtisYuzdesi.toFixed(2) + ")"}</Text> :
+                                                                        (item.GunlukArtisYuzdesi < 0 ? <Text style={styles.textStyleYuzdeDegisimNegatif}>{"(%" + item.GunlukArtisYuzdesi.toFixed(2) + ")"}</Text> :
+                                                                            <Text style={styles.textStyle}>{"(%" + item.GunlukArtisYuzdesi.toFixed(2) + ")"}</Text>)}
+                                                                </View>
+
+
+                                                            </View>
+                                                            <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "center" }} >
+
+                                                                <View style={{}}>
+                                                                    <Text style={styles.textStyle}>{"Toplam Değişim: "}</Text>
+                                                                </View>
+                                                                <View style={{ flexDirection: "row" }}>
+                                                                    {(item.toplamBugunkuDeger - item.toplamOdenenPara) > 0 ? <Text style={styles.textStyleYuzdeDegisimPozitif}>{(item.toplamBugunkuDeger - item.toplamOdenenPara).toFixed(2)}</Text> :
+                                                                        ((item.toplamBugunkuDeger - item.toplamOdenenPara) < 0 ? <Text style={styles.textStyleYuzdeDegisimNegatif}>{(item.toplamBugunkuDeger - item.toplamOdenenPara).toFixed(2)}</Text> :
+                                                                            <Text style={styles.textStyle}>{(item.toplamBugunkuDeger - item.toplamOdenenPara)}</Text>)}
+                                                                    {item.genelYuzdelikArtis > 0 ? <Text style={styles.textStyleYuzdeDegisimPozitif}>{"(%" + item.genelYuzdelikArtis.toFixed(2) + ")"}</Text> :
+                                                                        (item.genelYuzdelikArtis < 0 ? <Text style={styles.textStyleYuzdeDegisimNegatif}>{"(%" + item.genelYuzdelikArtis.toFixed(2) + ")"}</Text> :
+                                                                            <Text style={styles.textStyle}>{"(%" + item.genelYuzdelikArtis.toFixed(2) + ")"}</Text>)}
+                                                                </View>
+
+                                                            </View>
                                                         </View>
                                                     </View>
 

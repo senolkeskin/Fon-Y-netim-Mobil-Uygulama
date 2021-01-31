@@ -666,7 +666,7 @@ export default class FonGenelBilgi extends Component<Props, FonGenelBilgiState> 
         return (
             <BannerAd
                 unitId={adUnitId}
-                size={BannerAdSize.FLUID}
+                size={BannerAdSize.SMART_BANNER}
                 onAdClosed={() => null}
                 onAdLoaded={() => null}
                 onAdFailedToLoad={(error) => console.log(error)}
@@ -745,7 +745,7 @@ export default class FonGenelBilgi extends Component<Props, FonGenelBilgiState> 
                                     data={this.state.listingData}
                                     renderItem={({ item, index }) => (
                                         <View style={{ backgroundColor: colors.backgroundColor }}>
-                                            {index % 10 == 0 ? this.renderBannerAd() : null}
+                                            {index % 10 == 9 ? this.renderBannerAd() : null}
                                             <TouchableOpacity onPress={() => this.props.navigation.navigate("Fon Detay", { fundItem: item })}>
                                                 <View style={styles.container}>
                                                     <View style={styles.row_cell1}>

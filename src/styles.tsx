@@ -41,31 +41,31 @@ const styles = StyleSheet.create({
         margin:scale(3)
       },
       textStyle: {
-        textAlign:"left",
+        textAlign:"center",
         color: "white",
         includeFontPadding: false,
         fontSize: moderateScale(12,1),
         fontWeight: "bold",
       },
       textStyleYuzdeDegisimPozitif:{
-        textAlign:"left",
+        textAlign:"center",
         color: "green",
         includeFontPadding: false,
         fontSize: moderateScale(12,1),
         fontWeight: "bold", 
       },
       textStyleYuzdeDegisimNegatif:{
-        textAlign:"left",
+        textAlign:"center",
         color: "red",
         includeFontPadding: false,
         fontSize: moderateScale(12,1),
         fontWeight: "bold", 
       },
       textStyleBirimPayDeger:{
-        textAlign:"left",
+        textAlign:"center",
         color: "white",
         includeFontPadding: false,
-        fontSize: moderateScale(10,1),
+        fontSize: moderateScale(9,1),
         fontWeight: "bold",
       },
       input: {
@@ -189,6 +189,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: "#F5FCFF88"
+  },
+  stacknavigatorStyle: {
+    margin:scale(10),
+    color:colors.White,
+    marginTop:scale(15),
+    fontSize:scale(10),
   }
 });
 
